@@ -11,7 +11,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import io.github.duzhaokun123.yamf.R
-import io.github.duzhaokun123.yamf.common.runMain
+import io.github.duzhaokun123.yamf.common.extensions.runMain
 import io.github.duzhaokun123.yamf.manager.application
 
 object TipUtil {
@@ -24,15 +24,6 @@ object TipUtil {
     fun unregisterCoordinatorLayout(context: Context) {
         map.remove(context.hashCode())
     }
-
-    fun showToast(msg: CharSequence?) {
-        runMain {
-            Toast.makeText(application, "$msg", Toast.LENGTH_LONG).show()
-        }
-    }
-
-    fun showToast(@StringRes resId: Int) =
-        showToast(application.getText(resId))
 
     fun showSnackbar(coordinatorLayout: CoordinatorLayout, msg: CharSequence?) {
         runMain {

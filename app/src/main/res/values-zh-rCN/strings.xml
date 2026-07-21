@@ -24,4 +24,74 @@
     <string name="enter_window">进窗</string>
     <string name="build_type">构建类型</string>
     <string name="reset_all_window">重置所有窗口</string>
+
+    <string name="nav_home">首页</string>
+    <string name="nav_settings">设置</string>
+    <string name="nav_about">关于</string>
+
+    <string name="minimize">最小化</string>
+    <string name="fullscreen">全屏</string>
+    <string name="collapse">收起</string>
+    <string name="close">关闭</string>
+    <string name="minimize_desc">最小化</string>
+    <string name="resize_desc">调整大小</string>
+    <string name="collapsed_app_icon">应用图标</string>
+
+    <string name="pref_display_title">显示设置</string>
+    <string name="pref_window_style">窗口样式</string>
+    <string name="pref_window_style_classic">经典</string>
+    <string name="pref_window_style_gesture">手势</string>
+    <string name="pref_density_dpi">屏幕密度 (DPI)</string>
+    <string name="pref_default_window_size">默认窗口大小 (dp)</string>
+    <string name="pref_flags">标志位 (Flags)</string>
+    <string name="pref_colored_controller">彩色控制条</string>
+
+    <string name="pref_behavior_title">行为设置</string>
+    <string name="pref_windowfy">进窗模式 (Windowfy)</string>
+    <string name="pref_windowfy_0">0: 移动任务</string>
+    <string name="pref_windowfy_1">1: 启动 Activity</string>
+    <string name="pref_windowfy_2">2: 移动任务 (失败则启动)</string>
+
+    <string name="pref_render_title">渲染设置</string>
+    <string name="pref_surface_view">表面类型 (Surface Type)</string>
+    <string name="pref_surface_view_0">0: TextureView</string>
+    <string name="pref_surface_view_1">1: SurfaceView</string>
+
+    <string name="pref_interaction_title">交互设置</string>
+    <string name="pref_haptic_feedback">触感反馈</string>
+    <string name="pref_exclude_system_gesture">排除系统手势</string>
+    <string name="pref_enable_flick_away">启用“滑动销毁”</string>
+    <string name="pref_back_home">最近任务返回主页</string>
+    <string name="pref_show_ime">在窗口中显示输入法</string>
+    <string name="pref_show_ime_desc">需要 VIRTUAL_DISPLAY_FLAG_PUBLIC 标志</string>
+    <string name="pref_force_show_ime">强制显示输入法</string>
+    <string name="pref_force_show_ime_desc">会改变悬浮窗口标志 (不推荐)</string>
+
+    <string name="pref_hook_launcher_title">桌面 Hook</string>
+    <string name="pref_hook_recents">Hook 最近任务</string>
+    <string name="pref_hook_taskbar">Hook 任务栏</string>
+    <string name="pref_hook_popup">Hook 弹出菜单</string>
+    <string name="pref_hook_transient_taskbar">Hook 临时任务栏</string>
+    <string name="pref_hook_launcher_restart_desc">* 可能需要重启两次桌面才能生效</string>
+
+    <string name="pref_other_title">其他</string>
+    <string name="pref_use_app_list">使用应用列表</string>
+
+    <string name="about_version">版本</string>
+    <string name="about_build_time">构建时间</string>
+    <string name="about_links">链接</string>
+    <string name="about_github">GitHub 项目主页</string>
+    <string name="about_telegram">Telegram 频道</string>
+
+    <string name="home_quick_settings">快速设置</string>
+    <string name="home_recent_logs">最近动态</string>
+    <string name="home_log_window_created">已为 %s 创建窗口</string>
+    <string name="home_log_window_reset">已重置所有窗口</string>
+
+    <string name="pref_search_hint">搜索设置项…</string>
+    <string name="pref_preview">预览</string>
+    <string name="pref_preview_desc">大致的窗口长宽比例</string>
+
+    <string name="dialog_width">宽度 (dp)</string>
+    <string name="dialog_height">高度 (dp)</string>
 </resources>

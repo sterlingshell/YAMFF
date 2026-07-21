@@ -6,6 +6,6 @@ import android.widget.Toast
 @SuppressLint("StaticFieldLeak")
 object TipUtil {
     fun showToast(msg: String) {
-        Toast.makeText(Instances.systemContext, "[YAMF] $msg", Toast.LENGTH_LONG).show()
+        Toast.makeText(SystemServices.systemContext, "[YAMF] $msg", Toast.LENGTH_LONG).show()
     }
 }

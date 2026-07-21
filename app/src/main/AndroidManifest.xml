@@ -3,7 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
-        android:name=".manager.Application"
+        android:name=".manager.YAMFApplication"
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -19,7 +19,7 @@
             tools:ignore="ExportedContentProvider" />
         
         <activity
-            android:name=".manager.ui.main.MainActivity"
+            android:name=".manager.ui.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -27,12 +27,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".manager.ui.SettingsActivity"
-            android:label="@string/settings" />
 
         <service
-            android:name=".manager.services.QSNewWindowService"
+            android:name=".manager.services.QSNewWindowTileService"
             android:exported="true"
             android:icon="@drawable/ic_picture_in_picture_alt_24"
             android:label="@string/new_window"
@@ -43,7 +40,7 @@
         </service>
 
         <service
-            android:name=".manager.services.QSEnterWindow"
+            android:name=".manager.services.QSEnterTileService"
             android:exported="true"
             android:icon="@drawable/ic_picture_in_picture_alt_24"
             android:label="@string/enter_window"
@@ -54,7 +51,7 @@
         </service>
 
         <service
-            android:name=".manager.services.QSResetAllWindow"
+            android:name=".manager.services.QSResetAllTileService"
             android:exported="true"
             android:icon="@drawable/ic_picture_in_picture_alt_24"
             android:label="@string/reset_all_window"

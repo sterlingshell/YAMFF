@@ -24,4 +24,74 @@
     <string name="enter_window">enter window</string>
     <string name="build_type">build type</string>
     <string name="reset_all_window">reset all window</string>
+
+    <string name="nav_home">Home</string>
+    <string name="nav_settings">Settings</string>
+    <string name="nav_about">About</string>
+
+    <string name="minimize">Minimize</string>
+    <string name="fullscreen">Fullscreen</string>
+    <string name="collapse">Collapse</string>
+    <string name="close">Close</string>
+    <string name="minimize_desc">Minimize</string>
+    <string name="resize_desc">Resize</string>
+    <string name="collapsed_app_icon">App Icon</string>
+
+    <string name="pref_display_title">Display Settings</string>
+    <string name="pref_window_style">Window Style</string>
+    <string name="pref_window_style_classic">Classic</string>
+    <string name="pref_window_style_gesture">Gesture</string>
+    <string name="pref_density_dpi">Density DPI</string>
+    <string name="pref_default_window_size">Default window size (dp)</string>
+    <string name="pref_flags">Flags</string>
+    <string name="pref_colored_controller">Colored Controller</string>
+
+    <string name="pref_behavior_title">Behavior Settings</string>
+    <string name="pref_windowfy">Windowfy Mode</string>
+    <string name="pref_windowfy_0">0: Move Task</string>
+    <string name="pref_windowfy_1">1: Start Activity</string>
+    <string name="pref_windowfy_2">2: Move Task (fallback to start)</string>
+
+    <string name="pref_render_title">Rendering Settings</string>
+    <string name="pref_surface_view">Surface Type</string>
+    <string name="pref_surface_view_0">0: TextureView</string>
+    <string name="pref_surface_view_1">1: SurfaceView</string>
+
+    <string name="pref_interaction_title">Interaction Settings</string>
+    <string name="pref_haptic_feedback">Haptic Feedback</string>
+    <string name="pref_exclude_system_gesture">Exclude System Gesture</string>
+    <string name="pref_enable_flick_away">Enable Flick Away</string>
+    <string name="pref_back_home">Back Home on Recents</string>
+    <string name="pref_show_ime">Show IME in Window</string>
+    <string name="pref_show_ime_desc">Requires VIRTUAL_DISPLAY_FLAG_PUBLIC</string>
+    <string name="pref_force_show_ime">Force Show IME</string>
+    <string name="pref_force_show_ime_desc">Changes floating window flag (not recommended)</string>
+
+    <string name="pref_hook_launcher_title">Hook Launcher</string>
+    <string name="pref_hook_recents">Hook Recents</string>
+    <string name="pref_hook_taskbar">Hook Taskbar</string>
+    <string name="pref_hook_popup">Hook Popup</string>
+    <string name="pref_hook_transient_taskbar">Hook Transient Taskbar</string>
+    <string name="pref_hook_launcher_restart_desc">* May need to restart launcher twice</string>
+
+    <string name="pref_other_title">Others</string>
+    <string name="pref_use_app_list">Use App List</string>
+
+    <string name="about_version">Version</string>
+    <string name="about_build_time">Build Time</string>
+    <string name="about_links">Links</string>
+    <string name="about_github">GitHub</string>
+    <string name="about_telegram">Telegram Channel</string>
+
+    <string name="home_quick_settings">Quick Settings</string>
+    <string name="home_recent_logs">Recent Events</string>
+    <string name="home_log_window_created">Created window for %s</string>
+    <string name="home_log_window_reset">All windows reset</string>
+
+    <string name="pref_search_hint">Search settings…</string>
+    <string name="pref_preview">Preview</string>
+    <string name="pref_preview_desc">Approximate window aspect ratio</string>
+
+    <string name="dialog_width">Width (dp)</string>
+    <string name="dialog_height">Height (dp)</string>
 </resources>
