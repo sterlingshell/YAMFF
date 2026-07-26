@@ -92,9 +92,9 @@ class HookSystem : IXposedHookZygoteInit, IXposedHookLoadPackage {
     }
     
     private fun hookWindowLogic(lpparam: XC_LoadPackage.LoadPackageParam) {
-        val classRecentTasks = loadClass("com.android.server.wm.RecentTasks")
-        val classActivityRecord = loadClass("com.android.server.wm.ActivityRecord")
-        val classTask = loadClass("com.android.server.wm.Task")
+        val classRecentTasks = com.github.kyuubiran.ezxhelper.utils.loadClassOrNull("com.android.server.wm.RecentTasks") ?: return
+        val classActivityRecord = com.github.kyuubiran.ezxhelper.utils.loadClassOrNull("com.android.server.wm.ActivityRecord") ?: return
+        val classTask = com.github.kyuubiran.ezxhelper.utils.loadClassOrNull("com.android.server.wm.Task") ?: return
 
         // Hide from Recents (Low level)
         classTask.findMethodOrNull { name == "isIncludedInRecents" }?.hookBefore { param ->

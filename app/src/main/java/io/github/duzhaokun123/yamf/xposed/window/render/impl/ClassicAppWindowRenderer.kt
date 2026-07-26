@@ -36,6 +36,7 @@ class ClassicAppWindowRenderer(context: Context) : BaseAppWindowRenderer<WindowA
     override lateinit var internalSurfaceView: View
     override val internalBubbleView = BubbleView(context).apply { isVisible = false }
     override lateinit var internalBlurImageView: android.widget.ImageView
+    override lateinit var internalGhostImageView: android.widget.ImageView
     override lateinit var internalViewportContainer: android.view.ViewGroup
     
     init {
@@ -46,10 +47,10 @@ class ClassicAppWindowRenderer(context: Context) : BaseAppWindowRenderer<WindowA
 
     private fun setupSurfaceView() {
         val surfaceType = runCatching { ConfigManager.config.surfaceView }.getOrNull() ?: SurfaceType.TEXTURE
-        when (surfaceType) {
-            SurfaceType.TEXTURE -> internalSurfaceView = TextureView(context)
-            SurfaceType.SURFACE -> internalSurfaceView = SurfaceView(context)
-            else -> internalSurfaceView = TextureView(context)
+        if (surfaceType == SurfaceType.SURFACE) {
+            internalSurfaceView = SurfaceView(context)
+        } else {
+            internalSurfaceView = TextureView(context)
         }
 
         internalViewportContainer = FrameLayout(context).apply {
@@ -69,6 +70,8 @@ class ClassicAppWindowRenderer(context: Context) : BaseAppWindowRenderer<WindowA
             scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
             isVisible = false
         }
+        
+        internalGhostImageView = binding.ivGhost
 
         internalViewportContainer.addView(internalBlurImageView)
         internalViewportContainer.addView(internalSurfaceView.apply {
@@ -78,9 +81,7 @@ class ClassicAppWindowRenderer(context: Context) : BaseAppWindowRenderer<WindowA
 
         binding.rlCardRoot.addView(internalViewportContainer, 1)
         
-        binding.root.addView(internalBubbleView, FrameLayout.LayoutParams(
-            56.dpToPx().toInt(), 56.dpToPx().toInt()
-        ))
+        setupOverlayViews(binding.root)
     }
 
     private fun setupListeners() {
@@ -88,6 +89,10 @@ class ClassicAppWindowRenderer(context: Context) : BaseAppWindowRenderer<WindowA
 
         binding.root.setOnTouchListener { _, event ->
             val state = lastState ?: return@setOnTouchListener false
+            
+            // Standardized Touch Strategy:
+            // 1. If collapsed, only let BubbleView handle it (via its own listener).
+            // 2. If expanded, root handles global drag and fling.
             if (state.isCollapsed) return@setOnTouchListener false
             
             moveGestureDetector.onTouchEvent(event)
@@ -195,7 +200,6 @@ class ClassicAppWindowRenderer(context: Context) : BaseAppWindowRenderer<WindowA
             binding.vSupporter.visibility = View.GONE
             binding.vSizePreviewer.visibility = View.GONE
             binding.cvApp.visibility = View.GONE
-            binding.ivGhost.visibility = View.GONE
         } else {
             binding.cvApp.visibility = View.VISIBLE
             

@@ -36,6 +36,7 @@ class GestureAppWindowRenderer(context: Context) : BaseAppWindowRenderer<WindowA
     override lateinit var internalSurfaceView: View
     override val internalBubbleView = BubbleView(context).apply { isVisible = false }
     override lateinit var internalBlurImageView: android.widget.ImageView
+    override lateinit var internalGhostImageView: android.widget.ImageView
     override lateinit var internalViewportContainer: android.view.ViewGroup
     
     private val viewportOutlineProvider = object : android.view.ViewOutlineProvider() {
@@ -55,22 +56,14 @@ class GestureAppWindowRenderer(context: Context) : BaseAppWindowRenderer<WindowA
         val viewTexture = binding.viewTexture
         
         val surfaceType = runCatching { ConfigManager.config.surfaceView }.getOrNull() ?: SurfaceType.TEXTURE
-        when (surfaceType) {
-            SurfaceType.TEXTURE -> {
-                internalSurfaceView = viewTexture
-                viewSurface.isVisible = false
-                viewTexture.isVisible = true
-            }
-            SurfaceType.SURFACE -> {
-                internalSurfaceView = viewSurface
-                viewSurface.isVisible = true
-                viewTexture.isVisible = false
-            }
-            else -> {
-                internalSurfaceView = viewTexture
-                viewSurface.isVisible = false
-                viewTexture.isVisible = true
-            }
+        if (surfaceType == SurfaceType.SURFACE) {
+            internalSurfaceView = viewSurface
+            viewSurface.isVisible = true
+            viewTexture.isVisible = false
+        } else {
+            internalSurfaceView = viewTexture
+            viewSurface.isVisible = false
+            viewTexture.isVisible = true
         }
         internalSurfaceView.id = R.id.surface
         
@@ -83,10 +76,10 @@ class GestureAppWindowRenderer(context: Context) : BaseAppWindowRenderer<WindowA
             isVisible = false
         }
         binding.viewport.addView(internalBlurImageView, 0) // Behind surface
+        
+        internalGhostImageView = binding.ivGhost
 
-        binding.root.addView(internalBubbleView, FrameLayout.LayoutParams(
-            56.dpToPx().toInt(), 56.dpToPx().toInt()
-        ))
+        setupOverlayViews(binding.root)
     }
 
     private fun setupListeners() {
@@ -94,7 +87,10 @@ class GestureAppWindowRenderer(context: Context) : BaseAppWindowRenderer<WindowA
 
         binding.root.setOnTouchListener { _, event ->
             val state = lastState ?: return@setOnTouchListener false
+            
+            // Standardized Touch Strategy
             if (state.isCollapsed) return@setOnTouchListener false
+            
             internalActionHandler?.invoke(AppWindowAction.RequestMoveToTop)
             false
         }
@@ -186,12 +182,6 @@ class GestureAppWindowRenderer(context: Context) : BaseAppWindowRenderer<WindowA
         if (state.isMini != oldState?.isMini) updateMiniUI(state.isMini)
         
         updateWindowLayout(state)
-        
-        binding.ivGhost.isVisible = state.ghostIconVisible
-        if (state.ghostIconVisible) {
-            binding.ivGhost.x = state.ghostIconPos.first
-            binding.ivGhost.y = state.ghostIconPos.second
-        }
     }
 
     override fun applyThemeColors(colors: ThemeColors) {
@@ -236,7 +226,6 @@ class GestureAppWindowRenderer(context: Context) : BaseAppWindowRenderer<WindowA
             binding.rlBarControllerBottom.visibility = View.GONE
             binding.rlBarControllerSide.visibility = View.GONE
             binding.ibRightResize.visibility = View.GONE
-            binding.ivGhost.visibility = View.GONE
         } else {
             binding.cvParent.isVisible = true
             binding.cvBackground.isVisible = true

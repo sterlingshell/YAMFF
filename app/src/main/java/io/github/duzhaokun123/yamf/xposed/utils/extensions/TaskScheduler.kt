@@ -22,30 +22,36 @@ import io.github.duzhaokun123.yamf.xposed.utils.TipUtil
 
 @SuppressLint("MissingPermission")
 fun moveTask(taskId: Int, displayId: Int) {
-    SystemServices.activityTaskManager.moveRootTaskToDisplay(taskId, displayId)
-    SystemServices.activityManager.moveTaskToFront(taskId, 0)
+    if (!SystemServices.checkInitialized()) return
+    runCatching {
+        SystemServices.activityTaskManager.moveRootTaskToDisplay(taskId, displayId)
+        SystemServices.activityManager.moveTaskToFront(taskId, 0)
+    }.onFailure { log("TaskScheduler", "moveTask failed", it) }
 }
 
 fun startActivity(context: Context, componentName: ComponentName, userId: Int, displayId: Int) {
-    context.invokeMethod(
-        "startActivityAsUser",
-        args(
-            Intent().apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                component = componentName
-                `package` = component!!.packageName
-                action = Intent.ACTION_VIEW
-            },
-            ActivityOptions.makeBasic().apply {
-                launchDisplayId = displayId
-                SystemCompat.setCallerDisplayId(this, displayId)
-            }.toBundle(),
-            UserHandle::class.java.newInstance(
-                args(userId),
-                argTypes(Integer.TYPE)
-            )
-        ), argTypes(Intent::class.java, Bundle::class.java, UserHandle::class.java)
-    )
+    if (!SystemServices.checkInitialized()) return
+    runCatching {
+        context.invokeMethod(
+            "startActivityAsUser",
+            args(
+                Intent().apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    component = componentName
+                    `package` = component!!.packageName
+                    action = Intent.ACTION_VIEW
+                },
+                ActivityOptions.makeBasic().apply {
+                    launchDisplayId = displayId
+                    SystemCompat.setCallerDisplayId(this, displayId)
+                }.toBundle(),
+                UserHandle::class.java.newInstance(
+                    args(userId),
+                    argTypes(Integer.TYPE)
+                )
+            ), argTypes(Intent::class.java, Bundle::class.java, UserHandle::class.java)
+        )
+    }.onFailure { log("TaskScheduler", "startActivity failed", it) }
 }
 
 fun moveToDisplay(context: Context, taskId: Int, componentName: ComponentName, userId: Int, displayId: Int) {

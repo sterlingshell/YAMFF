@@ -51,6 +51,13 @@ object SystemServices {
     var initialized = false
         private set
 
+    fun checkInitialized(): Boolean {
+        if (!initialized) {
+            log(TAG, "SystemServices NOT fully initialized, some features may not work")
+        }
+        return initialized
+    }
+
     fun init(activityManagerService: Any) {
         this.activityManagerService = activityManagerService
         var success = true

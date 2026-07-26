@@ -46,6 +46,7 @@ abstract class BaseAppWindowRenderer<VB : ViewBinding>(val context: Context) : A
     protected abstract val internalSurfaceView: View
     protected abstract val internalBubbleView: BubbleView
     protected abstract val internalBlurImageView: ImageView
+    protected abstract val internalGhostImageView: ImageView
     protected abstract val internalViewportContainer: android.view.ViewGroup
     
     protected var lastState: AppWindowState? = null
@@ -59,6 +60,18 @@ abstract class BaseAppWindowRenderer<VB : ViewBinding>(val context: Context) : A
 
     override fun getRootView(): View = binding.root
     override fun getSurfaceView(): View = internalSurfaceView
+
+    protected fun setupOverlayViews(root: android.view.ViewGroup) {
+        // Ensure Bubble and Ghost are at the top of the root container
+        (internalBubbleView.parent as? android.view.ViewGroup)?.removeView(internalBubbleView)
+        (internalGhostImageView.parent as? android.view.ViewGroup)?.removeView(internalGhostImageView)
+
+        root.addView(internalGhostImageView, WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT)
+        root.addView(internalBubbleView, 56.dpToPx().toInt(), 56.dpToPx().toInt())
+        
+        internalGhostImageView.isVisible = false
+        internalBubbleView.isVisible = false
+    }
 
     protected fun setupSurfaceViewCommon() {
         (internalSurfaceView as? SurfaceView)?.setZOrderMediaOverlay(true)
@@ -106,6 +119,7 @@ abstract class BaseAppWindowRenderer<VB : ViewBinding>(val context: Context) : A
 
         if (state.isCollapsed) {
             internalBubbleView.isVisible = true
+            internalGhostImageView.isVisible = false
             // Dynamic Shadow Padding based on bubble size
             val p = (state.bubbleWidth.coerceAtLeast(56.dpToPx().toInt()) * 0.5f).toInt()
             // Set padding BEFORE calculating lp.x/lp.y so the position accounts for the new padding
@@ -121,6 +135,11 @@ abstract class BaseAppWindowRenderer<VB : ViewBinding>(val context: Context) : A
             // Restore zero padding for expanded mode to avoid viewport shift
             root.setPadding(0, 0, 0, 0)
             internalBubbleView.isVisible = false
+            internalGhostImageView.isVisible = state.ghostIconVisible
+            if (state.ghostIconVisible) {
+                internalGhostImageView.x = state.ghostIconPos.first
+                internalGhostImageView.y = state.ghostIconPos.second
+            }
             internalSurfaceView.isVisible = state.contentReady
         }
 

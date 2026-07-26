@@ -86,6 +86,13 @@ class AppWindowLogic(
         private set
     private var rotateLock = false
 
+    data class TaskInfoSnapshot(
+        val taskId: Int,
+        val userId: Int,
+        val topActivity: ComponentName?,
+        val isVisible: Boolean
+    )
+
     init {
         val defaultWidth = ConfigManager.config.defaultWindowWidth.dpToPx().toInt()
         val defaultHeight = ConfigManager.config.defaultWindowHeight.dpToPx().toInt()
@@ -388,16 +395,16 @@ class AppWindowLogic(
         handler.post { onStateChanged(newState) }
     }
 
-    private fun updateTask(taskInfo: ActivityManager.RunningTaskInfo) {
-        hostedTaskId = taskInfo.taskId
+    private fun updateTask(snapshot: TaskInfoSnapshot) {
+        hostedTaskId = snapshot.taskId
         YAMFWindowManager.associateTaskWithDisplay(hostedTaskId, displayId)
         MainThreadQueue.add {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S_V2 && !taskInfo.isVisible) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S_V2 && !snapshot.isVisible) {
                 delay(500)
             }
-            val topActivity = taskInfo.topActivity ?: return@add
-            val taskDescription = SystemServices.activityTaskManager.getTaskDescription(taskInfo.taskId) ?: return@add
-            val activityInfo = (SystemServices.iPackageManager as IPackageManagerHidden).getActivityInfoCompat(topActivity, 0, taskInfo.getObjectAs<Int>("userId")!!) ?: return@add
+            val topActivity = snapshot.topActivity ?: return@add
+            val taskDescription = SystemServices.activityTaskManager.getTaskDescription(snapshot.taskId) ?: return@add
+            val activityInfo = (SystemServices.iPackageManager as IPackageManagerHidden).getActivityInfoCompat(topActivity, 0, snapshot.userId) ?: return@add
             
             val icon = YAMFRoundedDrawable().apply {
                 drawable = runCatching { taskDescription.icon }.getOrNull()?.let { BitmapDrawable(it) } ?: activityInfo.loadIcon(SystemServices.packageManager)
@@ -406,7 +413,7 @@ class AppWindowLogic(
             }
             
             val label = taskDescription.label ?: activityInfo.loadLabel(SystemServices.packageManager)
-            val debugLabel = if (BuildConfig.DEBUG) "(${taskInfo.taskId}-$displayId) $label" else label
+            val debugLabel = if (BuildConfig.DEBUG) "(${snapshot.taskId}-$displayId) $label" else label
             
             var themeColors = ThemeColors()
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && ConfigManager.config.coloredController) {
@@ -445,6 +452,13 @@ class AppWindowLogic(
     }
 
     inner class TaskStackListener : ITaskStackListener.Stub() {
+        private fun ActivityManager.RunningTaskInfo.toSnapshot() = TaskInfoSnapshot(
+            taskId = taskId,
+            userId = runCatching { getObjectAs<Int>("userId") }.getOrDefault(0),
+            topActivity = topActivity,
+            isVisible = runCatching { getObjectAs<Boolean>("isVisible") }.getOrDefault(true)
+        )
+
         override fun onTaskStackChanged() {}
         override fun onActivityPinned(packageName: String?, userId: Int, taskId: Int, stackId: Int) {}
         override fun onActivityUnpinned() {}
@@ -461,7 +475,7 @@ class AppWindowLogic(
         }
         override fun onTaskMovedToFront(taskInfo: ActivityManager.RunningTaskInfo) {
             if (taskInfo.getObject("displayId") == displayId) {
-                updateTask(taskInfo)
+                updateTask(taskInfo.toSnapshot())
             }
         }
         override fun onTaskDescriptionChanged(taskInfo: ActivityManager.RunningTaskInfo) {
@@ -469,7 +483,7 @@ class AppWindowLogic(
                 if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S_V2 && !taskInfo.isVisible){
                     return
                 }
-                updateTask(taskInfo)
+                updateTask(taskInfo.toSnapshot())
             }
         }
         override fun onActivityRequestedOrientationChanged(taskId: Int, requestedOrientation: Int) {}

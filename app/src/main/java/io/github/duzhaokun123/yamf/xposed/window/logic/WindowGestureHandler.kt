@@ -36,11 +36,21 @@ class WindowGestureHandler(
     private fun clampRect(rect: Rect, state: AppWindowState) {
         val screenWidth = context.resources.displayMetrics.widthPixels
         val screenHeight = context.resources.displayMetrics.heightPixels
-        val scale = state.scaleFactor * (if (state.isMini) AppWindowLogic.MINI_SCALE else 1f)
-        val visualWidth = (rect.width() * scale).toInt()
         
-        // Dynamic visibility threshold: 1/4 of visual width
-        val minVisible = (visualWidth * 0.25f).toInt().coerceIn(48.dpToPx().toInt(), 200)
+        // BUG Fix: Use bubbleWidth for constraints when collapsed.
+        // Formula: visualWidth is what the user SEES on screen.
+        val visualWidth: Int
+        val minVisible: Int
+        
+        if (state.isCollapsed) {
+            visualWidth = if (state.bubbleWidth > 0) state.bubbleWidth else 56.dpToPx().toInt()
+            // For bubble, ensure at least 48dp is always reachable
+            minVisible = 48.dpToPx().toInt()
+        } else {
+            val scale = state.scaleFactor * (if (state.isMini) AppWindowLogic.MINI_SCALE else 1f)
+            visualWidth = (rect.width() * scale).toInt()
+            minVisible = (visualWidth * 0.25f).toInt().coerceIn(48.dpToPx().toInt(), 200)
+        }
         
         val left = rect.left.coerceIn(minVisible - visualWidth, screenWidth - minVisible)
         val top = rect.top.coerceIn(0, screenHeight - minVisible)
