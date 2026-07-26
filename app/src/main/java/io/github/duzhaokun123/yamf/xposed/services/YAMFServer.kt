@@ -11,7 +11,7 @@ import android.view.InputDevice
 import android.view.KeyEvent
 import com.github.kyuubiran.ezxhelper.utils.argTypes
 import com.github.kyuubiran.ezxhelper.utils.args
-import com.github.kyuubiran.ezxhelper.utils.invokeMethod
+import io.github.duzhaokun123.yamf.xposed.compat.SystemCompat
 import io.github.duzhaokun123.yamf.BuildConfig
 import io.github.duzhaokun123.yamf.common.extensions.gson
 import io.github.duzhaokun123.yamf.common.model.StartCommand
@@ -179,28 +179,30 @@ object YAMFServer : IYAMFManager.Stub() {
             createWindow(StartCommand(componentName, userId, taskId))
 
             if (source == SOURCE_RECENTS && ConfigManager.config.recentsBackHome) {
-                val down = KeyEvent(
-                    SystemClock.uptimeMillis(),
-                    SystemClock.uptimeMillis(),
-                    KeyEvent.ACTION_DOWN,
-                    KeyEvent.KEYCODE_HOME,
-                    0
-                ).apply {
-                    this.source = InputDevice.SOURCE_KEYBOARD
-                    this.invokeMethod("setDisplayId", args(0), argTypes(Integer.TYPE))
-                }
-                SystemServices.inputManager.injectInputEvent(down, 0)
-                val up = KeyEvent(
-                    SystemClock.uptimeMillis(),
-                    SystemClock.uptimeMillis(),
-                    KeyEvent.ACTION_UP,
-                    KeyEvent.KEYCODE_HOME,
-                    0
-                ).apply {
-                    this.source = InputDevice.SOURCE_KEYBOARD
-                    this.invokeMethod("setDisplayId", args(0), argTypes(Integer.TYPE))
-                }
-                SystemServices.inputManager.injectInputEvent(up, 0)
+                runCatching {
+                    val down = KeyEvent(
+                        SystemClock.uptimeMillis(),
+                        SystemClock.uptimeMillis(),
+                        KeyEvent.ACTION_DOWN,
+                        KeyEvent.KEYCODE_HOME,
+                        0
+                    ).apply {
+                        this.source = InputDevice.SOURCE_KEYBOARD
+                        SystemCompat.setDisplayId(this, 0)
+                    }
+                    SystemServices.inputManager.injectInputEvent(down, 0)
+                    val up = KeyEvent(
+                        SystemClock.uptimeMillis(),
+                        SystemClock.uptimeMillis(),
+                        KeyEvent.ACTION_UP,
+                        KeyEvent.KEYCODE_HOME,
+                        0
+                    ).apply {
+                        this.source = InputDevice.SOURCE_KEYBOARD
+                        SystemCompat.setDisplayId(this, 0)
+                    }
+                    SystemServices.inputManager.injectInputEvent(up, 0)
+                }.onFailure { log(TAG, "Failed to inject HOME key", it) }
             }
         }
 }

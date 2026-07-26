@@ -12,6 +12,7 @@ import com.github.kyuubiran.ezxhelper.utils.argTypes
 import com.github.kyuubiran.ezxhelper.utils.args
 import com.github.kyuubiran.ezxhelper.utils.invokeMethod
 import com.github.kyuubiran.ezxhelper.utils.newInstance
+import io.github.duzhaokun123.yamf.xposed.compat.SystemCompat
 import io.github.duzhaokun123.yamf.common.model.StartCommand
 import io.github.duzhaokun123.yamf.common.extensions.onException
 import io.github.duzhaokun123.yamf.xposed.services.YAMFServer
@@ -37,7 +38,7 @@ fun startActivity(context: Context, componentName: ComponentName, userId: Int, d
             },
             ActivityOptions.makeBasic().apply {
                 launchDisplayId = displayId
-                this.invokeMethod("setCallerDisplayId", args(displayId), argTypes(Integer.TYPE))
+                SystemCompat.setCallerDisplayId(this, displayId)
             }.toBundle(),
             UserHandle::class.java.newInstance(
                 args(userId),

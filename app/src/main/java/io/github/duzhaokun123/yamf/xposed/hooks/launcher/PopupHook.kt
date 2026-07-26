@@ -22,6 +22,7 @@ import com.github.kyuubiran.ezxhelper.utils.paramCount
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 import io.github.duzhaokun123.yamf.R
+import io.github.duzhaokun123.yamf.xposed.compat.SystemCompat
 import io.github.duzhaokun123.yamf.xposed.services.YAMFServer
 import io.github.duzhaokun123.yamf.xposed.utils.extensions.log
 import java.lang.reflect.Proxy
@@ -42,13 +43,15 @@ object PopupHook {
         val shortcutClass = loadClass("com.android.launcher3.popup.SystemShortcut")
         val installClass = loadClass("com.android.launcher3.popup.SystemShortcut\$Install")
         
-        shortcutClass.findAllMethods { true }.hookBefore { param ->
+        val methodsToHook = listOf("onClick", "setIconAndContentDescriptionFor", "setIconAndLabelFor")
+        
+        shortcutClass.findAllMethods { methodsToHook.contains(name) }.hookBefore { param ->
             if (proxyInstances.contains(param.thisObject)) {
                 handleProxyMethod(param)
             }
         }
         
-        installClass.findAllMethods { true }.hookBefore { param ->
+        installClass.findAllMethods { methodsToHook.contains(name) }.hookBefore { param ->
             if (proxyInstances.contains(param.thisObject)) {
                 handleProxyMethod(param)
             }
@@ -62,13 +65,13 @@ object PopupHook {
         when (methodName) {
             "onClick" -> {
                 val mItemInfo = thiz.getObject("mItemInfo")
-                val componentName = mItemInfo.invokeMethod("getTargetComponent") as ComponentName
-                val userId = (mItemInfo.getObject("user") as UserHandle)
+                val componentName = SystemCompat.getTargetComponent(mItemInfo)
+                val userHandle = SystemCompat.getUserHandle(mItemInfo)
                 AndroidAppHelper.currentApplication()
                     .sendBroadcast(Intent(YAMFServer.ACTION_OPEN_APP).apply {
                         setPackage("android")
                         putExtra(YAMFServer.EXTRA_COMPONENT_NAME, componentName)
-                        putExtra(YAMFServer.EXTRA_USER_ID, userId)
+                        putExtra(YAMFServer.EXTRA_USER_ID, (userHandle as? UserHandle)?.hashCode() ?: 0)
                         putExtra(YAMFServer.EXTRA_SOURCE, YAMFServer.SOURCE_POPUP)
                     })
                 thiz.invokeMethodAuto("dismissTaskMenuView", thiz.getObject("mTarget"))

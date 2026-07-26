@@ -53,7 +53,8 @@ class BubbleView(context: Context) : FrameLayout(context) {
                     v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start()
                     if (isDragging) {
                         actionHandler?.invoke(AppWindowAction.EndBubbleDrag)
-                        val velocityX = (event.rawX - startX) / (System.currentTimeMillis() - startTime).toFloat() * 1000
+                        val duration = (System.currentTimeMillis() - startTime).coerceAtLeast(1L)
+                        val velocityX = (event.rawX - startX) / duration.toFloat() * 1000
                         actionHandler?.invoke(AppWindowAction.FlickAwayBubble(velocityX))
                     } else if (System.currentTimeMillis() - startTime < ViewConfiguration.getTapTimeout()) {
                         actionHandler?.invoke(AppWindowAction.TapBubble)

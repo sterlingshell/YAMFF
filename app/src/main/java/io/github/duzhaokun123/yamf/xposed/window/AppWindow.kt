@@ -39,10 +39,13 @@ class AppWindow(
         const val ACTION_RESET_ALL_WINDOW = "io.github.duzhaokun123.yamf.ui.window.action.ACTION_RESET_ALL_WINDOW"
     }
 
-    private val renderer: AppWindowRenderer = if (ConfigManager.config.windowStyle == WindowStyle.GESTURE) {
-        GestureAppWindowRenderer(context)
-    } else {
-        ClassicAppWindowRenderer(context)
+    private val renderer: AppWindowRenderer = run {
+        val style = runCatching { ConfigManager.config.windowStyle }.getOrNull() ?: WindowStyle.GESTURE
+        if (style == WindowStyle.GESTURE) {
+            GestureAppWindowRenderer(context)
+        } else {
+            ClassicAppWindowRenderer(context)
+        }
     }
     private val logic: AppWindowLogic = AppWindowLogic(
         context, densityDpi, flags,

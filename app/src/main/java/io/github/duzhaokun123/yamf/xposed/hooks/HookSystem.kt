@@ -49,37 +49,43 @@ class HookSystem : IXposedHookZygoteInit, IXposedHookLoadPackage {
          serviceManagerHook = findMethodOrNull("android.os.ServiceManager") {
              name == "addService"
          }?.hookBefore { param ->
-             if (param.args[0] == "package") {
-                 serviceManagerHook?.unhook()
-                 val pms = param.args[1] as IPackageManager
-                 log(TAG, "Got pms: $pms")
-                 thread {
-                     runCatching {
-                         YAMFIpcService.register(pms)
-                         log(TAG, "YAMFIpcService started")
-                     }.onFailure {
-                         log(TAG, "YAMFIpcService failed to start", it)
+             runCatching {
+                 if (param.args[0] == "package") {
+                     serviceManagerHook?.unhook()
+                     val pms = param.args[1] as? IPackageManager ?: return@runCatching
+                     log(TAG, "Got pms: $pms")
+                     thread {
+                         runCatching {
+                             YAMFIpcService.register(pms)
+                             log(TAG, "YAMFIpcService started")
+                         }.onFailure {
+                             log(TAG, "YAMFIpcService failed to start", it)
+                         }
                      }
                  }
-             }
+             }.onFailure { log(TAG, "Error in addService hook", it) }
          }
 
          var activityManagerServiceSystemReadyHook: XC_MethodHook.Unhook? = null
          activityManagerServiceSystemReadyHook = findMethodOrNull("com.android.server.am.ActivityManagerService") {
              name == "systemReady"
          }?.hookAfter {
-             activityManagerServiceSystemReadyHook?.unhook()
-             YAMFServer.activityManagerService = it.thisObject
-             YAMFServer.systemReady()
-             log(TAG, "system ready")
+             runCatching {
+                 activityManagerServiceSystemReadyHook?.unhook()
+                 YAMFServer.activityManagerService = it.thisObject
+                 YAMFServer.systemReady()
+                 log(TAG, "system ready")
+             }.onFailure { log(TAG, "Error in systemReady hook", it) }
          }
 
         findMethodOrNull("com.android.server.am.ActivityManagerService") {
             name == "checkBroadcastFromSystem"
         }?.hookBefore {
-            val intent = it.args[0] as Intent
-            if (intent.action == HookLauncher.ACTION_RECEIVE_LAUNCHER_CONFIG)
-                it.result = Unit // bypass check
+            runCatching {
+                val intent = it.args[0] as? Intent ?: return@runCatching
+                if (intent.action == HookLauncher.ACTION_RECEIVE_LAUNCHER_CONFIG)
+                    it.result = Unit // bypass check
+            }.onFailure { log(TAG, "Error in checkBroadcastFromSystem hook", it) }
         }
         
         hookWindowLogic(lpparam)
@@ -118,17 +124,18 @@ class HookSystem : IXposedHookZygoteInit, IXposedHookLoadPackage {
 
         // Hide from Recents (List level)
         classRecentTasks.findAllMethods { name == "getRecentTasks" }.hookAfter { param ->
-            val result = param.result ?: return@hookAfter
-            val list = result.invokeMethodAutoAs<List<ActivityManager.RecentTaskInfo>>("getList") ?: return@hookAfter
-            val filteredList = list.filter { info ->
-                val displayId = runCatching { info.getObjectAs<Int>("displayId") }.getOrDefault(0)
-                val inWindow = YAMFWindowManager.isTaskInWindow(info.taskId) || YAMFWindowManager.getWindowList().contains(displayId)
-                !inWindow
-            }
-            if (filteredList.size != list.size) {
-                val classParceledListSlice = loadClass("android.content.pm.ParceledListSlice")
-                param.result = classParceledListSlice.findConstructor { paramCount == 1 }.newInstance(filteredList)
-            }
+            runCatching {
+                val result = param.result ?: return@hookAfter
+                val list = io.github.duzhaokun123.yamf.xposed.compat.SystemCompat.getRecentTasksList(result) ?: return@hookAfter
+                val filteredList = list.filter { info ->
+                    val displayId = io.github.duzhaokun123.yamf.xposed.compat.SystemCompat.getDisplayId(info)
+                    val inWindow = YAMFWindowManager.isTaskInWindow(info.taskId) || YAMFWindowManager.getWindowList().contains(displayId)
+                    !inWindow
+                }
+                if (filteredList.size != list.size) {
+                    param.result = io.github.duzhaokun123.yamf.xposed.compat.SystemCompat.createParceledListSlice(filteredList)
+                }
+            }.onFailure { log(TAG, "Error in getRecentTasks hook", it) }
         }
 
         // Multi-Resume

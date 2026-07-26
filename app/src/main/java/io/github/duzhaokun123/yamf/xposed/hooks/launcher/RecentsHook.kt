@@ -35,6 +35,7 @@ object RecentsHook {
                 override fun afterHookedMethod(param: MethodHookParam) {
                     val taskView = param.args[0] as View
                     val shortcuts = param.result as MutableList<Any>
+                    if (shortcuts.isEmpty()) return
                     var itemInfo = XposedHelpers.getObjectField(shortcuts[0], "mItemInfo")
                     itemInfo =
                         itemInfo.javaClass.getConstructor(itemInfo.javaClass).newInstance(itemInfo)

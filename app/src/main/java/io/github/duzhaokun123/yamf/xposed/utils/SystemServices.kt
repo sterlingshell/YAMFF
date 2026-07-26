@@ -48,8 +48,12 @@ object SystemServices {
         get() = activityManagerService.getObjectAs("mUiContext")
 
 
+    var initialized = false
+        private set
+
     fun init(activityManagerService: Any) {
         this.activityManagerService = activityManagerService
+        var success = true
         runCatching {
             systemContext = activityManagerService.getObjectAs("mContext")
             windowManager = systemContext.getSystemService(WindowManager::class.java)
@@ -57,12 +61,17 @@ object SystemServices {
             packageManager = systemContext.packageManager
             activityManager = systemContext.getSystemService(ActivityManager::class.java)
             userManager = systemContext.getSystemService(UserManager::class.java)
-        }.onFailure { log(TAG, "Failed to init basic services from context", it) }
+        }.onFailure { 
+            log(TAG, "Failed to init basic services from context", it)
+            success = false
+        }
 
-        runCatching { iWindowManager = IWindowManager.Stub.asInterface(ServiceManager.getService("window")) }.onFailure { log(TAG, "Failed to get window service", it) }
-        runCatching { inputManager = IInputManager.Stub.asInterface(ServiceManager.getService("input")) }.onFailure { log(TAG, "Failed to get input service", it) }
-        runCatching { activityTaskManager = IActivityTaskManager.Stub.asInterface(ServiceManager.getService("activity_task")) }.onFailure { log(TAG, "Failed to get activity_task service", it) }
-        runCatching { iPackageManager = IPackageManager.Stub.asInterface(ServiceManager.getService("package")) }.onFailure { log(TAG, "Failed to get package service", it) }
-        runCatching { iStatusBarService = IStatusBarService.Stub.asInterface(ServiceManager.getService("statusbar")) }.onFailure { log(TAG, "Failed to get statusbar service", it) }
+        runCatching { iWindowManager = IWindowManager.Stub.asInterface(ServiceManager.getService("window")) }.onFailure { log(TAG, "Failed to get window service", it); success = false }
+        runCatching { inputManager = IInputManager.Stub.asInterface(ServiceManager.getService("input")) }.onFailure { log(TAG, "Failed to get input service", it); success = false }
+        runCatching { activityTaskManager = IActivityTaskManager.Stub.asInterface(ServiceManager.getService("activity_task")) }.onFailure { log(TAG, "Failed to get activity_task service", it); success = false }
+        runCatching { iPackageManager = IPackageManager.Stub.asInterface(ServiceManager.getService("package")) }.onFailure { log(TAG, "Failed to get package service", it); success = false }
+        runCatching { iStatusBarService = IStatusBarService.Stub.asInterface(ServiceManager.getService("statusbar")) }.onFailure { log(TAG, "Failed to get statusbar service", it); success = false }
+        
+        initialized = success
     }
 }

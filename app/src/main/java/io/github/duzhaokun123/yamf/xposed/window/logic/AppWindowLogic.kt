@@ -32,6 +32,7 @@ import com.google.android.material.color.MaterialColors
 import io.github.duzhaokun123.yamf.BuildConfig
 import io.github.duzhaokun123.yamf.common.extensions.getAttr
 import io.github.duzhaokun123.yamf.common.extensions.runMain
+import io.github.duzhaokun123.yamf.xposed.compat.SystemCompat
 import io.github.duzhaokun123.yamf.xposed.services.ConfigManager
 import io.github.duzhaokun123.yamf.xposed.services.YAMFWindowManager
 import io.github.duzhaokun123.yamf.xposed.window.model.AppWindowAction
@@ -287,15 +288,9 @@ class AppWindowLogic(
 
     private fun setFrameRate(fps: Float) {
         if (isDestroyed) return
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            runCatching {
-                val surface = virtualDisplay?.surface
-                if (surface != null && surface.isValid) {
-                    surface.invokeMethod("setFrameRate", args(fps, 0), argTypes(Float::class.java, Int::class.java))
-                }
-            }.onFailure { e ->
-                Log.e(TAG, "setFrameRate failed", e)
-            }
+        val surface = virtualDisplay?.surface
+        if (surface != null && surface.isValid) {
+            SystemCompat.setFrameRate(surface, fps)
         }
     }
 
@@ -323,9 +318,7 @@ class AppWindowLogic(
     private fun moveToTop() {
         if (displayId == -1) return
         YAMFWindowManager.moveToTop(displayId)
-        runCatching {
-            SystemServices.iWindowManager.invokeMethod("setFocusedDisplay", args(displayId), argTypes(Integer.TYPE))
-        }
+        SystemCompat.setFocusedDisplay(SystemServices.iWindowManager, displayId)
         updateState { it.copy(isFocused = true) }
     }
 
@@ -333,12 +326,12 @@ class AppWindowLogic(
         if (displayId == -1) return
         val down = KeyEvent(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), KeyEvent.ACTION_DOWN, keyCode, 0).apply {
             source = InputDevice.SOURCE_KEYBOARD
-            this.invokeMethod("setDisplayId", args(displayId), argTypes(Integer.TYPE))
+            SystemCompat.setDisplayId(this, displayId)
         }
         SystemServices.inputManager.injectInputEvent(down, 0)
         val up = KeyEvent(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), KeyEvent.ACTION_UP, keyCode, 0).apply {
             source = InputDevice.SOURCE_KEYBOARD
-            this.invokeMethod("setDisplayId", args(displayId), argTypes(Integer.TYPE))
+            SystemCompat.setDisplayId(this, displayId)
         }
         SystemServices.inputManager.injectInputEvent(up, 0)
     }
@@ -367,7 +360,7 @@ class AppWindowLogic(
             event.xPrecision, event.yPrecision, event.deviceId, event.edgeFlags,
             event.source, event.flags
         )
-        newEvent.invokeMethod("setDisplayId", args(displayId), argTypes(Integer.TYPE))
+        SystemCompat.setDisplayId(newEvent, displayId)
         SystemServices.inputManager.injectInputEvent(newEvent, 0)
         // BUG Fix: Recycle after synchronous injection is complete to prevent Native memory leak.
         newEvent.recycle()

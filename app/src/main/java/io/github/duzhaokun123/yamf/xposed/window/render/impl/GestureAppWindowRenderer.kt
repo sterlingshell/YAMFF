@@ -54,7 +54,8 @@ class GestureAppWindowRenderer(context: Context) : BaseAppWindowRenderer<WindowA
         val viewSurface = binding.viewSurface
         val viewTexture = binding.viewTexture
         
-        when (ConfigManager.config.surfaceView) {
+        val surfaceType = runCatching { ConfigManager.config.surfaceView }.getOrNull() ?: SurfaceType.TEXTURE
+        when (surfaceType) {
             SurfaceType.TEXTURE -> {
                 internalSurfaceView = viewTexture
                 viewSurface.isVisible = false
@@ -64,6 +65,11 @@ class GestureAppWindowRenderer(context: Context) : BaseAppWindowRenderer<WindowA
                 internalSurfaceView = viewSurface
                 viewSurface.isVisible = true
                 viewTexture.isVisible = false
+            }
+            else -> {
+                internalSurfaceView = viewTexture
+                viewSurface.isVisible = false
+                viewTexture.isVisible = true
             }
         }
         internalSurfaceView.id = R.id.surface
@@ -249,7 +255,8 @@ class GestureAppWindowRenderer(context: Context) : BaseAppWindowRenderer<WindowA
             // Conditional sizing: 
             // 1. SurfaceView locks buffer size during scaling.
             // 2. Mini mode layouts content at FULL size but container is small (scaled visually).
-            val isSurfaceView = ConfigManager.config.surfaceView == SurfaceType.SURFACE
+            val surfaceType = runCatching { ConfigManager.config.surfaceView }.getOrNull() ?: SurfaceType.TEXTURE
+            val isSurfaceView = surfaceType == SurfaceType.SURFACE
             val lockContentSize = state.isScaling && isSurfaceView
 
             internalSurfaceView.updateLayoutParams<FrameLayout.LayoutParams> {

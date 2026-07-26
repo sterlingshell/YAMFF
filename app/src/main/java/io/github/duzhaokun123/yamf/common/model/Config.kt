@@ -25,8 +25,29 @@ data class Config(
     var excludeSystemGesture: Boolean = true,
     var enableFlickAway: Boolean = true,
     var windowStyle: WindowStyle = WindowStyle.GESTURE,
+    var version: Int = CURRENT_VERSION
 ) {
+    fun validateAndFix(): Config {
+        if ((surfaceView as Any?) == null) surfaceView = SurfaceType.TEXTURE
+        if ((windowStyle as Any?) == null) windowStyle = WindowStyle.GESTURE
+        if ((hookLauncher as Any?) == null) {
+            hookLauncher = HookLauncher()
+        } else {
+            hookLauncher.validateAndFix()
+        }
+        
+        // Fix other potential nulls if GSON was mean
+        if ((densityDpi as Any?) == null) densityDpi = 200
+        if ((flags as Any?) == null) flags = DEFAULT_FLAGS
+        if ((defaultWindowWidth as Any?) == null) defaultWindowWidth = 200
+        if ((defaultWindowHeight as Any?) == null) defaultWindowHeight = 300
+        
+        return this
+    }
+
     companion object {
+        const val CURRENT_VERSION = 2
+        
         const val STYLE_CLASSIC = 0
         const val STYLE_GESTURE = 1
 
@@ -52,5 +73,9 @@ data class Config(
         var hookTaskbar: Boolean = true,
         var hookPopup: Boolean = true,
         var hookTransientTaskbar: Boolean = false,
-    )
+    ) {
+        fun validateAndFix(): HookLauncher {
+            return this
+        }
+    }
 }

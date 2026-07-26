@@ -45,9 +45,11 @@ class ClassicAppWindowRenderer(context: Context) : BaseAppWindowRenderer<WindowA
     }
 
     private fun setupSurfaceView() {
-        when (ConfigManager.config.surfaceView) {
+        val surfaceType = runCatching { ConfigManager.config.surfaceView }.getOrNull() ?: SurfaceType.TEXTURE
+        when (surfaceType) {
             SurfaceType.TEXTURE -> internalSurfaceView = TextureView(context)
             SurfaceType.SURFACE -> internalSurfaceView = SurfaceView(context)
+            else -> internalSurfaceView = TextureView(context)
         }
 
         internalViewportContainer = FrameLayout(context).apply {
@@ -212,7 +214,8 @@ class ClassicAppWindowRenderer(context: Context) : BaseAppWindowRenderer<WindowA
             // Conditional sizing: 
             // 1. If scaling SurfaceView, lock content size to buffer.
             // 2. If in Mini mode, layout content at FULL size but keep container small (scaled visually by matrix).
-            val isSurfaceView = ConfigManager.config.surfaceView == SurfaceType.SURFACE
+            val surfaceType = runCatching { ConfigManager.config.surfaceView }.getOrNull() ?: SurfaceType.TEXTURE
+            val isSurfaceView = surfaceType == SurfaceType.SURFACE
             val lockContentSize = state.isScaling && isSurfaceView
 
             internalSurfaceView.updateLayoutParams<FrameLayout.LayoutParams> {

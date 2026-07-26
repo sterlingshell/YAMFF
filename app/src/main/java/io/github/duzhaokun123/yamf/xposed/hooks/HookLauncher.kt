@@ -41,7 +41,8 @@ class HookLauncher : IXposedHookLoadPackage, IXposedHookZygoteInit {
         Application::class.java.findMethod {
             name == "onCreate"
         }.hookAfter {
-            val application = it.thisObject as Application
+            val application = it.thisObject as? Application ?: return@hookAfter
+            if (application.packageName != lpparam.packageName) return@hookAfter
             application.registerReceiver(ACTION_RECEIVE_LAUNCHER_CONFIG) { _, intent ->
                 val hookRecents = intent.getBooleanExtra(EXTRA_HOOK_RECENTS, false)
                 val hookTaskbar = intent.getBooleanExtra(EXTRA_HOOK_TASKBAR, false)
@@ -58,7 +59,8 @@ class HookLauncher : IXposedHookLoadPackage, IXposedHookZygoteInit {
                     log(TAG, "hook taskbar failed", e) }
                 if (hookPopup) runCatching { PopupHook.hook(lpparam) }.onFailure { e ->
                     log(TAG, "hook popup failed", e) }
-//                if (hookTransientTaskbar) TransientTaskbarHook.hook(lpparam)
+                if (hookTransientTaskbar) runCatching { TransientTaskbarHook.hook(lpparam) }.onFailure { e ->
+                    log(TAG, "hook transient taskbar failed", e) }
                 application.unregisterReceiver(this)
             }
             application.sendBroadcast(Intent(YAMFServer.ACTION_GET_LAUNCHER_CONFIG).apply {
@@ -66,7 +68,5 @@ class HookLauncher : IXposedHookLoadPackage, IXposedHookZygoteInit {
                 putExtra("sender", application.packageName)
             })
         }
-
-        TransientTaskbarHook.hook(lpparam)
     }
 }
