@@ -94,25 +94,16 @@ fun AboutScreen() {
                 title = stringResource(R.string.about_github),
                 onClick = {
                     context.startActivity(
-                        Intent(Intent.ACTION_VIEW, "https://github.com/duzhaokun123/YAMFF".toUri())
+                        Intent(Intent.ACTION_VIEW, "https://github.com/sterlingshell/YAMFF/".toUri())
                             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     )
                 }
             )
             PreferenceItem(
-                title = stringResource(R.string.about_telegram),
+                title = stringResource(R.string.github_issues),
                 onClick = {
                     context.startActivity(
-                        Intent(Intent.ACTION_VIEW, "https://t.me/YAMFF_channel".toUri())
-                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    )
-                }
-            )
-            PreferenceItem(
-                title = stringResource(R.string.donate),
-                onClick = {
-                    context.startActivity(
-                        Intent(Intent.ACTION_VIEW, "https://duzhaokun123.github.io/donate.html".toUri())
+                        Intent(Intent.ACTION_VIEW, "https://github.com/sterlingshell/YAMFF/issues".toUri())
                             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     )
                 }

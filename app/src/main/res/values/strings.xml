@@ -11,8 +11,7 @@
     <string name="open_count">Open Count</string>
     <string name="new_window">New Window</string>
     <string name="open_app_list">Open App List</string>
-    <string name="telegram_channel">Telegram Channel</string>
-    <string name="donate">Donate</string>
+    <string name="github_issues" translatable="false">GitHub Issues</string>
     <string name="back_desc">Click: Back\nLong click: Home</string>
     <string name="rotate_desc">Click: Rotate\nLong click: Lock/Unlock auto rotate</string>
     <string name="fullscreen_desc">Click: Fullscreen\nLong click: Hang up, double click to resume</string>
@@ -81,7 +80,6 @@
     <string name="about_build_time">Build Time</string>
     <string name="about_links">Links</string>
     <string name="about_github">GitHub</string>
-    <string name="about_telegram">Telegram Channel</string>
 
     <string name="home_quick_settings">Quick Settings</string>
     <string name="home_recent_logs">Recent Events</string>

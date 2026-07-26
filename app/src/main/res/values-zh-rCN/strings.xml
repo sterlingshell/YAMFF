@@ -11,8 +11,6 @@
     <string name="open_count">开窗计数</string>
     <string name="new_window">开窗</string>
     <string name="open_app_list">打开应用列表</string>
-    <string name="telegram_channel">Telegram 频道</string>
-    <string name="donate">捐赠</string>
     <string name="back_desc">点击: 返回\n长按: 主页</string>
     <string name="rotate_desc">点击: 转屏\n长按: 锁定/解锁 自动转屏</string>
     <string name="fullscreen_desc">点击: 全屏\n长按: 挂起, 双击恢复</string>
@@ -81,7 +79,6 @@
     <string name="about_build_time">构建时间</string>
     <string name="about_links">链接</string>
     <string name="about_github">GitHub 项目主页</string>
-    <string name="about_telegram">Telegram 频道</string>
 
     <string name="home_quick_settings">快速设置</string>
     <string name="home_recent_logs">最近动态</string>
