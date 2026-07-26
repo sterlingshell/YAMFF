@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">YAMF</string>
+    <string name="app_name">YAMFF</string>
     <string name="details">详情</string>
     <string name="unknown_error">未知错误</string>
     <string name="activated">已激活</string>
     <string name="need_reboot">需要重启</string>
     <string name="not_activated">未激活</string>
-    <string name="need_reboot_message">已有的窗口不会出现问题\n但新建窗口可能导致系统崩溃</string>
     <string name="reboot">重启</string>
     <string name="settings">设置</string>
     <string name="open_count">开窗计数</string>
@@ -20,7 +19,7 @@
     <string name="close_desc">点击: 关闭\n长按: 应用列表</string>
     <string name="xposeddescription">为类原生系统设计的小窗</string>
     <string name="info_system_version">系统版本</string>
-    <string name="open_with_yamf">使用 YAMF 打开</string>
+    <string name="open_with_yamff">使用 YAMFF 打开</string>
     <string name="enter_window">进窗</string>
     <string name="build_type">构建类型</string>
     <string name="reset_all_window">重置所有窗口</string>
@@ -45,6 +44,7 @@
     <string name="pref_default_window_size">默认窗口大小 (dp)</string>
     <string name="pref_flags">标志位 (Flags)</string>
     <string name="pref_colored_controller">彩色控制条</string>
+    <string name="pref_status_animations">状态卡片动画</string>
 
     <string name="pref_behavior_title">行为设置</string>
     <string name="pref_windowfy">进窗模式 (Windowfy)</string>
@@ -87,6 +87,9 @@
     <string name="home_recent_logs">最近动态</string>
     <string name="home_log_window_created">已为 %s 创建窗口</string>
     <string name="home_log_window_reset">已重置所有窗口</string>
+
+    <string name="status_system">系统: %s</string>
+    <string name="status_module">模块: %s</string>
 
     <string name="pref_search_hint">搜索设置项…</string>
     <string name="pref_preview">预览</string>

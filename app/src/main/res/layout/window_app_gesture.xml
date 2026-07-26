@@ -140,7 +140,7 @@
                         android:id="@+id/v_sizePreviewer"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:background="@drawable/a_bg"
+                        android:background="@drawable/bg_window_preview"
                         android:elevation="5dp"
                         android:visibility="invisible" />
                 </FrameLayout>

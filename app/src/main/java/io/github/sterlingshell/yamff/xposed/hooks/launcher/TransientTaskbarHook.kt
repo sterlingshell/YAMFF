@@ -1,0 +1,18 @@
+package io.github.sterlingshell.yamff.xposed.hooks.launcher
+
+import com.github.kyuubiran.ezxhelper.utils.findMethod
+import com.github.kyuubiran.ezxhelper.utils.hookReturnConstant
+import com.github.kyuubiran.ezxhelper.utils.loadClass
+import de.robv.android.xposed.callbacks.XC_LoadPackage
+import io.github.sterlingshell.yamff.xposed.utils.extensions.log
+
+object TransientTaskbarHook {
+    private const val TAG = "YAMFF_TransientTaskbarHook"
+
+    fun hook(lpparam: XC_LoadPackage.LoadPackageParam) {
+        log(TAG, "hook transientTaskbar ${lpparam.packageName}")
+        loadClass("com.android.launcher3.util.DisplayController")
+            .findMethod { name == "isTransientTaskbar" }
+            .hookReturnConstant(true)
+    }
+}

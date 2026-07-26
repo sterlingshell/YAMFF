@@ -22,7 +22,7 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "io.github.duzhaokun123.yamf"
+        applicationId = "io.github.sterlingshell.yamff"
         minSdk = 31
         targetSdk = 34
         versionCode = 7
@@ -99,10 +99,13 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
     }
+    androidResources {
+        additionalParameters += listOf("--allow-reserved-package-id", "--package-id", "0x64")
+    }
     lint {
         abortOnError = false
     }
-    namespace = "io.github.duzhaokun123.yamf"
+    namespace = "io.github.sterlingshell.yamff"
 }
 
 dependencies {

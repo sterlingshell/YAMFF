@@ -34,11 +34,10 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.github.kyuubiran.ezxhelper.init.EzXHelperInit;
-import com.google.android.material.color.DynamicColors;
 
 import java.util.Objects;
 
-import io.github.duzhaokun123.yamf.R;
+import io.github.sterlingshell.yamff.R;
 import io.github.qauxv.util.SavedInstanceStatePatchedClassReferencer;
 
 /**
@@ -153,7 +152,7 @@ public class CommonContextWrapper extends ContextThemeWrapper {
         if (isAppCompatContext(base)) {
             return base;
         }
-        return new CommonContextWrapper(base, R.style.Theme_YAMF_Window,
+        return new CommonContextWrapper(base, R.style.Theme_YAMFF_Window,
                 recreateNighModeConfig(base, base.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK));
     }
 

@@ -151,7 +151,7 @@
                         android:layout_height="30dp"
                         android:layout_alignParentEnd="true"
                         android:background="@null"
-                        android:src="@drawable/vd_vector"
+                        android:src="@drawable/ic_resize_handle"
                         android:tint="?colorOnPrimaryContainer" />
                 </RelativeLayout>
             </LinearLayout>
@@ -162,7 +162,7 @@
             android:layout_width="200dp"
             android:layout_height="300dp"
             android:layout_marginTop="28dp"
-            android:background="@drawable/a_bg"
+            android:background="@drawable/bg_window_preview"
             android:elevation="5dp"
             android:visibility="gone">
 

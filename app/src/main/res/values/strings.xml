@@ -1,29 +1,28 @@
 <resources>
-    <string name="app_name">YAMF</string>
+    <string name="app_name">YAMFF</string>
 
-    <string name="details">details</string>
-    <string name="unknown_error">unknown error</string>
-    <string name="activated">activated</string>
-    <string name="need_reboot">need reboot</string>
-    <string name="not_activated">not activated</string>
-    <string name="need_reboot_message">Existing windows are fine\nBut new window may make system crash</string>
-    <string name="reboot">reboot</string>
-    <string name="settings">settings</string>
-    <string name="open_count">open count</string>
-    <string name="new_window">new window</string>
-    <string name="open_app_list">open app list</string>
-    <string name="telegram_channel">Telegram channel</string>
-    <string name="donate">donate</string>
-    <string name="back_desc">click: back\nlong click: home</string>
-    <string name="rotate_desc">click: rotate\nlong click: lock/unlock auto rotaote</string>
-    <string name="fullscreen_desc">click: fullscreen\nlong click: hang up, double click to resume</string>
-    <string name="close_desc">click: close\nlong click: app list</string>
-    <string name="xposeddescription">free window for AOSP-like systems</string>
-    <string name="info_system_version">System version</string>
-    <string name="open_with_yamf">Open with YAMF</string>
-    <string name="enter_window">enter window</string>
-    <string name="build_type">build type</string>
-    <string name="reset_all_window">reset all window</string>
+    <string name="details">Details</string>
+    <string name="unknown_error">Unknown Error</string>
+    <string name="activated">Activated</string>
+    <string name="need_reboot">Need Reboot</string>
+    <string name="not_activated">Not Activated</string>
+    <string name="reboot">Reboot</string>
+    <string name="settings">Settings</string>
+    <string name="open_count">Open Count</string>
+    <string name="new_window">New Window</string>
+    <string name="open_app_list">Open App List</string>
+    <string name="telegram_channel">Telegram Channel</string>
+    <string name="donate">Donate</string>
+    <string name="back_desc">Click: Back\nLong click: Home</string>
+    <string name="rotate_desc">Click: Rotate\nLong click: Lock/Unlock auto rotate</string>
+    <string name="fullscreen_desc">Click: Fullscreen\nLong click: Hang up, double click to resume</string>
+    <string name="close_desc">Click: Close\nLong click: App list</string>
+    <string name="xposeddescription">Free window for AOSP-like systems</string>
+    <string name="info_system_version">System Version</string>
+    <string name="open_with_yamff">Open with YAMFF</string>
+    <string name="enter_window">Enter Window</string>
+    <string name="build_type">Build Type</string>
+    <string name="reset_all_window">Reset All Window</string>
 
     <string name="nav_home">Home</string>
     <string name="nav_settings">Settings</string>
@@ -45,6 +44,7 @@
     <string name="pref_default_window_size">Default window size (dp)</string>
     <string name="pref_flags">Flags</string>
     <string name="pref_colored_controller">Colored Controller</string>
+    <string name="pref_status_animations">Status Card Animations</string>
 
     <string name="pref_behavior_title">Behavior Settings</string>
     <string name="pref_windowfy">Windowfy Mode</string>
@@ -87,6 +87,9 @@
     <string name="home_recent_logs">Recent Events</string>
     <string name="home_log_window_created">Created window for %s</string>
     <string name="home_log_window_reset">All windows reset</string>
+
+    <string name="status_system">System: %s</string>
+    <string name="status_module">Module: %s</string>
 
     <string name="pref_search_hint">Search settings…</string>
     <string name="pref_preview">Preview</string>
