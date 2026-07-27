@@ -99,9 +99,6 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
     }
-    androidResources {
-        additionalParameters += listOf("--allow-reserved-package-id", "--package-id", "0x64")
-    }
     lint {
         abortOnError = false
     }
