@@ -3,7 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
-        android:name=".manager.YAMFFApplication"
+        android:name=".manager.App"
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -13,8 +13,8 @@
         tools:ignore="DataExtractionRules">
         
         <provider
-            android:authorities="io.github.sterlingshell.yamff.ServiceProvider"
-            android:name=".manager.providers.ServiceProvider"
+            android:authorities="io.github.sterlingshell.yamff.provider"
+            android:name=".manager.provider.Provider"
             android:exported="true"
             tools:ignore="ExportedContentProvider" />
         
@@ -29,7 +29,7 @@
         </activity>
 
         <service
-            android:name=".manager.services.QSNewWindowTileService"
+            android:name=".manager.service.NewWindowTileService"
             android:exported="true"
             android:icon="@drawable/ic_picture_in_picture_alt_24"
             android:label="@string/new_window"
@@ -40,7 +40,7 @@
         </service>
 
         <service
-            android:name=".manager.services.QSEnterTileService"
+            android:name=".manager.service.EnterTileService"
             android:exported="true"
             android:icon="@drawable/ic_picture_in_picture_alt_24"
             android:label="@string/enter_window"
@@ -51,7 +51,7 @@
         </service>
 
         <service
-            android:name=".manager.services.QSResetAllTileService"
+            android:name=".manager.service.ResetAllTileService"
             android:exported="true"
             android:icon="@drawable/ic_picture_in_picture_alt_24"
             android:label="@string/reset_all_window"

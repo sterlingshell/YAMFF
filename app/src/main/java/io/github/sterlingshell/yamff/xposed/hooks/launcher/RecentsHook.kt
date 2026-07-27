@@ -16,11 +16,11 @@ import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 import io.github.sterlingshell.yamff.BuildConfig
 import io.github.sterlingshell.yamff.R
-import io.github.sterlingshell.yamff.xposed.services.YAMFFServer
-import io.github.sterlingshell.yamff.xposed.utils.extensions.log
+import io.github.sterlingshell.yamff.xposed.core.IpcService
+import io.github.sterlingshell.yamff.xposed.util.ext.log
 
 object RecentsHook {
-    private const val TAG = "YAMFF_RecentsHook"
+    private const val TAG = "RecentsHook"
 
     fun hook(lpparam: XC_LoadPackage.LoadPackageParam) {
         log(TAG, "hooking recents ${lpparam.packageName}")
@@ -30,6 +30,7 @@ object RecentsHook {
                 lpparam.classLoader
             ), "getEnabledShortcuts", object : XC_MethodHook() {
                 @SuppressLint("UseCompatLoadingForDrawables")
+                @Suppress("UNCHECKED_CAST")
                 override fun afterHookedMethod(param: MethodHookParam) {
                     val taskView = param.args[0] as View
                     val shortcuts = param.result as MutableList<Any>
@@ -49,12 +50,12 @@ object RecentsHook {
                         "com.android.launcher3.popup.RemoteActionShortcut",
                         lpparam.classLoader
                     )
-                    val intent = Intent(YAMFFServer.ACTION_OPEN_IN_YAMFF).apply {
+                    val intent = Intent(IpcService.ACTION_OPEN_IN_YAMFF).apply {
                         setPackage("android")
-                        putExtra(YAMFFServer.EXTRA_TASK_ID, taskId)
-                        putExtra(YAMFFServer.EXTRA_COMPONENT_NAME, topComponent)
-                        putExtra(YAMFFServer.EXTRA_USER_ID, userId)
-                        putExtra(YAMFFServer.EXTRA_SOURCE, YAMFFServer.SOURCE_RECENTS)
+                        putExtra(IpcService.EXTRA_TASK_ID, taskId)
+                        putExtra(IpcService.EXTRA_COMPONENT_NAME, topComponent)
+                        putExtra(IpcService.EXTRA_USER_ID, userId)
+                        putExtra(IpcService.EXTRA_SOURCE, IpcService.SOURCE_RECENTS)
                     }
                     val action = RemoteAction(
                         Icon.createWithBitmap(

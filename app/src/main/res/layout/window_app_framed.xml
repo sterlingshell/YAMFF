@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:clipChildren="false"
+        android:padding="12dp"
+        tools:ignore="UselessParent">
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cv_app"
+            style="@style/Widget.Material3.CardView.Elevated"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="?colorPrimaryContainer"
+            app:cardCornerRadius="@dimen/app_card_radius"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:id="@+id/rl_cardRoot"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <RelativeLayout
+                    android:id="@+id/rl_top"
+                    android:layout_width="match_parent"
+                    android:layout_height="28dp"
+                    android:minHeight="28dp">
+
+                    <ImageView
+                        android:id="@+id/iv_secure"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_centerVertical="true"
+                        android:layout_marginStart="2dp"
+                        android:layout_marginTop="2dp"
+                        android:layout_marginEnd="2dp"
+                        android:layout_marginBottom="2dp"
+                        android:contentDescription="@null"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_security_24"
+                        android:visibility="gone" />
+
+                    <ImageView
+                        android:id="@+id/iv_icon"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_centerVertical="true"
+                        android:layout_marginStart="2dp"
+                        android:layout_marginTop="2dp"
+                        android:layout_marginEnd="2dp"
+                        android:layout_marginBottom="2dp"
+                        android:contentDescription="@null"
+                        android:scaleType="fitCenter"
+                        android:layout_toEndOf="@id/iv_secure"
+                        android:src="@drawable/ic_android_black_24dp" />
+
+                    <TextView
+                        android:id="@+id/tv_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginStart="2dp"
+                        android:layout_toStartOf="@id/ib_close"
+                        android:layout_toEndOf="@id/iv_icon"
+                        android:maxLines="1"
+                        tools:text="name"
+                        android:textAppearance="?textAppearanceTitleSmall" />
+
+                    <ImageButton
+                        android:id="@+id/ib_close"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:contentDescription="@string/close_desc"
+                        android:src="@drawable/ic_close_24"
+                        app:tint="?colorOnPrimaryContainer" />
+                </RelativeLayout>
+
+                <!-- Surface Container will be inserted here at index 1 -->
+
+                <RelativeLayout
+                    android:id="@+id/rl_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp">
+
+                    <ImageButton
+                        android:id="@+id/ib_back"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:padding="4dp"
+                        android:contentDescription="@string/back_desc"
+                        android:src="@drawable/ic_arrow_back_24"
+                        app:tint="?colorOnPrimaryContainer" />
+
+                    <ImageButton
+                        android:id="@+id/ib_rotate"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_marginStart="4dp"
+                        android:layout_toEndOf="@id/ib_back"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:padding="4dp"
+                        android:contentDescription="@string/rotate_desc"
+                        android:src="@drawable/ic_screen_rotation_alt_24"
+                        app:tint="?colorOnPrimaryContainer" />
+
+                    <ImageButton
+                        android:id="@+id/ib_fullscreen"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_marginStart="4dp"
+                        android:layout_toEndOf="@id/ib_rotate"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:padding="4dp"
+                        android:contentDescription="@string/fullscreen_desc"
+                        android:src="@drawable/ic_fullscreen_24"
+                        app:tint="?colorOnPrimaryContainer" />
+
+                    <ImageButton
+                        android:id="@+id/ib_ime"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_marginStart="4dp"
+                        android:layout_toEndOf="@id/ib_fullscreen"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:padding="4dp"
+                        android:contentDescription="@string/keyboard_desc"
+                        android:src="@drawable/ic_keyboard"
+                        app:tint="?colorOnPrimaryContainer" />
+
+                    <ImageButton
+                        android:id="@+id/ib_lock_aspect"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_marginStart="4dp"
+                        android:layout_toEndOf="@id/ib_ime"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:padding="4dp"
+                        android:contentDescription="@string/lock_aspect_desc"
+                        android:src="@drawable/ic_picture_in_picture_alt_24"
+                        app:tint="?colorOnPrimaryContainer" />
+
+                    <ImageButton
+                        android:id="@+id/ib_resize"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_alignParentEnd="true"
+                        android:background="@null"
+                        android:contentDescription="@string/resize_handle_desc"
+                        android:src="@drawable/ic_resize_handle"
+                        app:tint="?colorOnPrimaryContainer" />
+                </RelativeLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <RelativeLayout
+            android:id="@+id/v_sizePreviewer"
+            android:layout_width="200dp"
+            android:layout_height="300dp"
+            android:layout_marginTop="28dp"
+            android:background="@drawable/bg_window_preview"
+            android:elevation="5dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tv_size"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:background="?colorPrimaryContainer"
+                android:textColor="?colorOnPrimaryContainer" />
+        </RelativeLayout>
+
+        <!-- View supporter for initial measurement -->
+        <View
+            android:id="@+id/v_supporter"
+            android:layout_width="200dp"
+            android:layout_height="300dp"
+            android:layout_marginTop="28dp" />
+    </FrameLayout>
+
+    <ImageView
+        android:id="@+id/iv_ghost"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:alpha="0.5"
+        android:contentDescription="@null"
+        android:elevation="10dp"
+        android:src="@drawable/ic_android_black_24dp"
+        android:visibility="gone" />
+
+</FrameLayout>

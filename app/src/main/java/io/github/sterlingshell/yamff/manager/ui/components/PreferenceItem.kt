@@ -20,7 +20,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 
 val LocalHapticEnabled = staticCompositionLocalOf { true }
-val LocalSettingsViewModel = staticCompositionLocalOf<io.github.sterlingshell.yamff.manager.ui.settings.SettingsViewModel> { error("No SettingsViewModel provided") }
+val LocalSettingsViewModel = staticCompositionLocalOf<io.github.sterlingshell.yamff.manager.ui.settings.ViewModel> { error("No SettingsViewModel provided") }
 
 @Composable
 fun PreferenceItem(

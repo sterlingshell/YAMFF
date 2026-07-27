@@ -1,2 +1,2 @@
-io.github.sterlingshell.yamff.xposed.hooks.HookSystem
+io.github.sterlingshell.yamff.xposed.hooks.SystemUiHook
 io.github.sterlingshell.yamff.xposed.hooks.HookLauncher

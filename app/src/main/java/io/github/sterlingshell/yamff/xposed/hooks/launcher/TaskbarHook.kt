@@ -10,11 +10,11 @@ import com.github.kyuubiran.ezxhelper.utils.invokeMethodAuto
 import com.github.kyuubiran.ezxhelper.utils.invokeMethodAutoAs
 import com.github.kyuubiran.ezxhelper.utils.loadClass
 import de.robv.android.xposed.callbacks.XC_LoadPackage
-import io.github.sterlingshell.yamff.xposed.services.YAMFFServer
-import io.github.sterlingshell.yamff.xposed.utils.extensions.log
+import io.github.sterlingshell.yamff.xposed.core.IpcService
+import io.github.sterlingshell.yamff.xposed.util.ext.log
 
 object TaskbarHook {
-    private const val TAG = "YAMFF_TaskbarHook"
+    private const val TAG = "TaskbarHook"
 
     fun hook(lpparam: XC_LoadPackage.LoadPackageParam) {
         log(TAG, "hooking taskbar ${lpparam.packageName}")
@@ -22,10 +22,10 @@ object TaskbarHook {
             findMethodOrNull { name == "startItemInfoActivity" }
                 ?.hookReplace {
                     val infoIntent = it.args[0].invokeMethodAutoAs<Intent>("getIntent")!!
-                    val intent = Intent(YAMFFServer.ACTION_OPEN_IN_YAMFF).apply {
+                    val intent = Intent(IpcService.ACTION_OPEN_IN_YAMFF).apply {
                         setPackage("android")
-                        putExtra(YAMFFServer.EXTRA_COMPONENT_NAME, infoIntent.component)
-                        putExtra(YAMFFServer.EXTRA_SOURCE, YAMFFServer.SOURCE_TASKBAR)
+                        putExtra(IpcService.EXTRA_COMPONENT_NAME, infoIntent.component)
+                        putExtra(IpcService.EXTRA_SOURCE, IpcService.SOURCE_TASKBAR)
                     }
                     AndroidAppHelper.currentApplication().sendBroadcast(intent)
                 }
@@ -36,10 +36,10 @@ object TaskbarHook {
                     val tag = it.args[0].invokeMethodAuto("getTag")!!
                     if (class_WorkspaceItemInfo.isInstance(tag)) {
                         val infoIntent = tag.invokeMethodAutoAs<Intent>("getIntent")!!
-                        val intent = Intent(YAMFFServer.ACTION_OPEN_IN_YAMFF).apply {
+                        val intent = Intent(IpcService.ACTION_OPEN_IN_YAMFF).apply {
                             setPackage("android")
-                            putExtra(YAMFFServer.EXTRA_COMPONENT_NAME, infoIntent.component)
-                            putExtra(YAMFFServer.EXTRA_SOURCE, YAMFFServer.SOURCE_TASKBAR)
+                            putExtra(IpcService.EXTRA_COMPONENT_NAME, infoIntent.component)
+                            putExtra(IpcService.EXTRA_SOURCE, IpcService.SOURCE_TASKBAR)
                         }
                         AndroidAppHelper.currentApplication().sendBroadcast(intent)
                         it.result = Unit

@@ -14,13 +14,13 @@ import io.github.sterlingshell.yamff.xposed.hooks.launcher.PopupHook
 import io.github.sterlingshell.yamff.xposed.hooks.launcher.RecentsHook
 import io.github.sterlingshell.yamff.xposed.hooks.launcher.TaskbarHook
 import io.github.sterlingshell.yamff.xposed.hooks.launcher.TransientTaskbarHook
-import io.github.sterlingshell.yamff.xposed.services.YAMFFServer
-import io.github.sterlingshell.yamff.xposed.utils.extensions.log
-import io.github.sterlingshell.yamff.xposed.utils.extensions.registerReceiver
+import io.github.sterlingshell.yamff.xposed.core.IpcService
+import io.github.sterlingshell.yamff.xposed.util.ext.log
+import io.github.sterlingshell.yamff.xposed.util.ext.registerReceiver
 
 class HookLauncher : IXposedHookLoadPackage, IXposedHookZygoteInit {
     companion object {
-        const val TAG = "YAMFF_HookLauncher"
+        const val TAG = "HookLauncher"
         const val ACTION_RECEIVE_LAUNCHER_CONFIG =
             "io.github.sterlingshell.yamff.ACTION_RECEIVE_LAUNCHER_CONFIG"
 
@@ -63,7 +63,7 @@ class HookLauncher : IXposedHookLoadPackage, IXposedHookZygoteInit {
                     log(TAG, "hook transient taskbar failed", e) }
                 application.unregisterReceiver(this)
             }
-            application.sendBroadcast(Intent(YAMFFServer.ACTION_GET_LAUNCHER_CONFIG).apply {
+            application.sendBroadcast(Intent(IpcService.ACTION_GET_LAUNCHER_CONFIG).apply {
                 `package` = "android"
                 putExtra("sender", application.packageName)
             })

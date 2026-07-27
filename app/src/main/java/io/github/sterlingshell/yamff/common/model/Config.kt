@@ -36,28 +36,11 @@ data class Config(
         if (defaultWindowWidth < 100) defaultWindowWidth = 100
         if (defaultWindowHeight < 100) defaultWindowHeight = 100
         
-        if ((surfaceView as Any?) == null) surfaceView = SurfaceType.TEXTURE
-        if ((windowStyle as Any?) == null) windowStyle = WindowStyle.GESTURE
-        if ((hookLauncher as Any?) == null) {
-            hookLauncher = HookLauncher()
-        } else {
-            hookLauncher.validateAndFix()
-        }
-        
-        // Fix other potential nulls if GSON was mean
-        if ((flags as Any?) == null) flags = DEFAULT_FLAGS
-        if ((useAppList as Any?) == null) useAppList = true
-        if ((enableStatusAnimations as Any?) == null) enableStatusAnimations = true
-        if ((lastSeenActivatedBuildTime as Any?) == null) lastSeenActivatedBuildTime = 0L
-        
         return this
     }
 
     companion object {
         const val CURRENT_VERSION = 3
-        
-        const val STYLE_CLASSIC = 0
-        const val STYLE_GESTURE = 1
 
         const val VIRTUAL_DISPLAY_FLAG_PUBLIC = 1 shl 0
         const val VIRTUAL_DISPLAY_FLAG_PRESENTATION = 1 shl 1
@@ -102,15 +85,5 @@ data class Config(
         var hookTaskbar: Boolean = true,
         var hookPopup: Boolean = true,
         var hookTransientTaskbar: Boolean = false,
-    ) {
-        fun validateAndFix(): HookLauncher {
-            return this
-        }
-
-        fun copy(update: (HookLauncher) -> Unit): HookLauncher {
-            val new = this.copy()
-            update(new)
-            return new
-        }
-    }
+    )
 }

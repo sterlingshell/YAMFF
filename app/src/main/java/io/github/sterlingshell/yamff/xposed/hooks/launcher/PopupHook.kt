@@ -20,14 +20,14 @@ import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 import io.github.sterlingshell.yamff.R
 import io.github.sterlingshell.yamff.xposed.compat.SystemCompat
-import io.github.sterlingshell.yamff.xposed.services.YAMFFServer
-import io.github.sterlingshell.yamff.xposed.utils.extensions.log
+import io.github.sterlingshell.yamff.xposed.core.IpcService
+import io.github.sterlingshell.yamff.xposed.util.ext.log
 import java.lang.reflect.Proxy
 import java.util.Collections
 import java.util.WeakHashMap
 
 object PopupHook {
-    private const val TAG = "YAMFF_PopupHook"
+    private const val TAG = "PopupHook"
     private val proxyInstances = Collections.newSetFromMap(WeakHashMap<Any, Boolean>())
 
     fun hook(lpparam: XC_LoadPackage.LoadPackageParam) {
@@ -65,11 +65,11 @@ object PopupHook {
                 val componentName = SystemCompat.getTargetComponent(mItemInfo)
                 val userHandle = SystemCompat.getUserHandle(mItemInfo)
                 AndroidAppHelper.currentApplication()
-                    .sendBroadcast(Intent(YAMFFServer.ACTION_OPEN_APP).apply {
+                    .sendBroadcast(Intent(IpcService.ACTION_OPEN_APP).apply {
                         setPackage("android")
-                        putExtra(YAMFFServer.EXTRA_COMPONENT_NAME, componentName)
-                        putExtra(YAMFFServer.EXTRA_USER_ID, (userHandle as? UserHandle)?.hashCode() ?: 0)
-                        putExtra(YAMFFServer.EXTRA_SOURCE, YAMFFServer.SOURCE_POPUP)
+                        putExtra(IpcService.EXTRA_COMPONENT_NAME, componentName)
+                        putExtra(IpcService.EXTRA_USER_ID, (userHandle as? UserHandle)?.hashCode() ?: 0)
+                        putExtra(IpcService.EXTRA_SOURCE, IpcService.SOURCE_POPUP)
                     })
                 thiz.invokeMethodAuto("dismissTaskMenuView", thiz.getObject("mTarget"))
                 param.result = Unit
