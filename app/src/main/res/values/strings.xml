@@ -95,4 +95,9 @@
 
     <string name="dialog_width">Width (dp)</string>
     <string name="dialog_height">Height (dp)</string>
+
+    <string name="keyboard_desc">Show keyboard</string>
+    <string name="lock_aspect_desc">Lock aspect ratio</string>
+    <string name="resize_handle_desc">Resize handle</string>
+    <string name="more_options_desc">More options</string>
 </resources>

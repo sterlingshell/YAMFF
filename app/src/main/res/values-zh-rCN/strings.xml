@@ -94,4 +94,9 @@
 
     <string name="dialog_width">宽度 (dp)</string>
     <string name="dialog_height">高度 (dp)</string>
+
+    <string name="keyboard_desc">显示键盘</string>
+    <string name="lock_aspect_desc">锁定宽高比</string>
+    <string name="resize_handle_desc">调整大小手柄</string>
+    <string name="more_options_desc">更多选项</string>
 </resources>
