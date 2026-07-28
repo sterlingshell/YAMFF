@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.sterlingshell.yamff.R
 import io.github.sterlingshell.yamff.common.model.Config
+import io.github.sterlingshell.yamff.common.model.DpiMode
 import io.github.sterlingshell.yamff.common.model.SurfaceType
 import io.github.sterlingshell.yamff.common.model.WindowStyle
 import io.github.sterlingshell.yamff.manager.ui.components.EditTextDialog
@@ -41,7 +42,9 @@ import io.github.sterlingshell.yamff.manager.ui.components.PreferenceItem
 import io.github.sterlingshell.yamff.manager.ui.components.SwitchPreference
 
 sealed class DialogState {
-    object Dpi : DialogState()
+    object DpiMode : DialogState()
+    object DpiValue : DialogState()
+    object AutoDpiWidth : DialogState()
     object WindowSize : DialogState()
     object WindowStyle : DialogState()
     object Flags : DialogState()
@@ -99,11 +102,28 @@ fun Settings(viewModel: ViewModel = viewModel()) {
                         onClick = { dialogState = DialogState.WindowStyle }
                     )
                     SearchablePreferenceItem(
-                        title = stringResource(R.string.pref_density_dpi),
-                        summary = config.densityDpi.toString(),
+                        title = stringResource(R.string.pref_dpi_mode),
+                        summary = stringResource(
+                            if (config.dpiMode == DpiMode.AUTO) R.string.pref_dpi_mode_auto else R.string.pref_dpi_mode_fixed
+                        ),
                         query = searchQuery,
-                        onClick = { dialogState = DialogState.Dpi }
+                        onClick = { dialogState = DialogState.DpiMode }
                     )
+                    if (config.dpiMode == DpiMode.AUTO) {
+                        SearchablePreferenceItem(
+                            title = stringResource(R.string.pref_auto_dpi_target_width),
+                            summary = config.autoDpiTargetWidth.toString(),
+                            query = searchQuery,
+                            onClick = { dialogState = DialogState.AutoDpiWidth }
+                        )
+                    } else {
+                        SearchablePreferenceItem(
+                            title = stringResource(R.string.pref_density_dpi),
+                            summary = config.densityDpi.toString(),
+                            query = searchQuery,
+                            onClick = { dialogState = DialogState.DpiValue }
+                        )
+                    }
                     SearchablePreferenceItem(
                         title = stringResource(R.string.pref_default_window_size),
                         summary = "${config.defaultWindowWidth} x ${config.defaultWindowHeight}",
@@ -269,7 +289,19 @@ fun Settings(viewModel: ViewModel = viewModel()) {
 
     // Dialogs
     when (dialogState) {
-        DialogState.Dpi -> {
+        DialogState.DpiMode -> {
+            ListPreferenceDialog(
+                title = stringResource(R.string.pref_dpi_mode),
+                options = listOf(
+                    stringResource(R.string.pref_dpi_mode_fixed),
+                    stringResource(R.string.pref_dpi_mode_auto)
+                ),
+                selectedIndex = config.dpiMode.value,
+                onDismiss = { dialogState = null },
+                onSelect = { viewModel.updateDpiMode(it) }
+            )
+        }
+        DialogState.DpiValue -> {
             EditTextDialog(
                 title = stringResource(R.string.pref_density_dpi),
                 initialValue = config.densityDpi.toString(),
@@ -281,6 +313,19 @@ fun Settings(viewModel: ViewModel = viewModel()) {
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 showPreview = true,
                 previewRatio = 1f
+            )
+        }
+        DialogState.AutoDpiWidth -> {
+            EditTextDialog(
+                title = stringResource(R.string.pref_auto_dpi_target_width),
+                description = stringResource(R.string.pref_auto_dpi_target_width_desc),
+                initialValue = config.autoDpiTargetWidth.toString(),
+                onDismiss = { dialogState = null },
+                onConfirm = { 
+                    it.toIntOrNull()?.let { width -> viewModel.updateAutoDpiTargetWidth(width) }
+                    dialogState = null
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
         }
         DialogState.WindowSize -> {

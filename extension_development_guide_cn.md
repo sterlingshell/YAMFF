@@ -22,7 +22,7 @@ YAMFF (Yet Another Mi-FreeForm) 提供了一套系统级的小窗引擎。通过
 
 ```kotlin
 dependencies {
-    implementation(project(":YAMFF-SDK"))
+    implementation(project(":yamff-sdk"))
 }
 ```
 

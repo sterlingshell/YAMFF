@@ -40,7 +40,12 @@
     <string name="pref_window_style">Window Style</string>
     <string name="pref_window_style_classic">Classic</string>
     <string name="pref_window_style_gesture">Gesture</string>
-    <string name="pref_density_dpi">Density DPI</string>
+    <string name="pref_density_dpi">Density DPI (Fixed)</string>
+    <string name="pref_dpi_mode">Density Mode</string>
+    <string name="pref_dpi_mode_fixed">Fixed</string>
+    <string name="pref_dpi_mode_auto">Auto (Responsive)</string>
+    <string name="pref_auto_dpi_target_width">Auto-DPI Target Width (dp)</string>
+    <string name="pref_auto_dpi_target_width_desc">Base width for density calculation</string>
     <string name="pref_default_window_size">Default window size (dp)</string>
     <string name="pref_flags">Flags</string>
     <string name="pref_colored_controller">Colored Controller</string>

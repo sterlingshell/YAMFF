@@ -162,7 +162,8 @@ fun EditTextDialog(
     onConfirm: (String) -> Unit,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     showPreview: Boolean = false,
-    previewRatio: Float = 1f
+    previewRatio: Float = 1f,
+    description: String? = null
 ) {
     var text by remember { mutableStateOf(initialValue) }
 
@@ -171,6 +172,13 @@ fun EditTextDialog(
         title = { Text(title) },
         text = {
             Column {
+                description?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                }
                 if (showPreview) {
                     Text(
                         text = stringResource(R.string.pref_preview),

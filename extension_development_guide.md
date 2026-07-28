@@ -24,7 +24,7 @@ Include the `YAMFF-SDK` in your project's dependencies:
 ```kotlin
 dependencies {
     // If developing within the YAMFF multi-module project
-    implementation(project(":YAMFF-SDK"))
+    implementation(project(":yamff-sdk"))
 }
 ```
 

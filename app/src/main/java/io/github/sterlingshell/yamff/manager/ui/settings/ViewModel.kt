@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import io.github.sterlingshell.yamff.common.ext.gson
 import io.github.sterlingshell.yamff.common.model.Config
+import io.github.sterlingshell.yamff.common.model.DpiMode
 import io.github.sterlingshell.yamff.common.model.SurfaceType
 import io.github.sterlingshell.yamff.common.model.WindowStyle
 import io.github.sterlingshell.yamff.manager.service.IpcProxy
@@ -48,6 +49,8 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
 
     // Individual update helpers for convenience
     fun updateDensityDpi(value: Int) = updateConfig { it.densityDpi = value }
+    fun updateDpiMode(value: Int) = updateConfig { it.dpiMode = DpiMode.fromInt(value) }
+    fun updateAutoDpiTargetWidth(value: Int) = updateConfig { it.autoDpiTargetWidth = value }
     fun updateFlags(value: Int) = updateConfig { it.flags = value }
     fun updateWindowStyle(value: Int) = updateConfig { it.windowStyle = WindowStyle.fromInt(value) }
     fun updateColoredController(value: Boolean) = updateConfig { it.coloredController = value }

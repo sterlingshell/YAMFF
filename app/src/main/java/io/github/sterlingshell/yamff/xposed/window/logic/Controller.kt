@@ -47,7 +47,7 @@ import kotlin.time.Duration.Companion.milliseconds
 
 class Controller(
     private val context: Context,
-    private val densityDpi: Int,
+    private var densityDpi: Int,
     private val flags: Int,
     private val onStateChanged: (State) -> Unit,
     private val onVirtualDisplayCreated: (Int) -> Unit,
@@ -61,6 +61,8 @@ class Controller(
         const val BUBBLE_WIDTH_COLLAPSED_DP = 56
         const val BUBBLE_RADIUS_DP = 28
         const val BUBBLE_WIDTH_MINI_DP = 48
+        
+        private const val BASE_DPI = 160
     }
 
     var state = State()
@@ -90,8 +92,9 @@ class Controller(
     )
 
     init {
-        val defaultWidth = ConfigManager.instance.config.defaultWindowWidth.dpToPx().toInt()
-        val defaultHeight = ConfigManager.instance.config.defaultWindowHeight.dpToPx().toInt()
+        val config = ConfigManager.instance.config
+        val defaultWidth = config.defaultWindowWidth.dpToPx().toInt()
+        val defaultHeight = config.defaultWindowHeight.dpToPx().toInt()
         val screenWidth = context.resources.displayMetrics.widthPixels
         val screenHeight = context.resources.displayMetrics.heightPixels
 
@@ -103,14 +106,16 @@ class Controller(
         )
 
         updateState { it.copy(windowRect = initialRect) }
+        
+        densityDpi = calculateDensity(initialRect.width())
 
         runCatching {
-            val vd = SystemServices.displayManager.createVirtualDisplay("yamff${System.currentTimeMillis()}", initialRect.width(), initialRect.height(), densityDpi, null, flags)
+            val vd = SystemServices.displayManager.createVirtualDisplay("YAMFF${System.currentTimeMillis()}", initialRect.width(), initialRect.height(), densityDpi, null, flags)
             virtualDisplay = vd
             displayId = vd.display.displayId
             updateState { it.copy(displayId = displayId) }
             
-            (SystemServices.windowManager as WindowManagerHidden).setDisplayImePolicy(displayId, if (ConfigManager.instance.config.showImeInWindow) WindowManagerHidden.DISPLAY_IME_POLICY_LOCAL else WindowManagerHidden.DISPLAY_IME_POLICY_FALLBACK_DISPLAY)
+            (SystemServices.windowManager as WindowManagerHidden).setDisplayImePolicy(displayId, if (config.showImeInWindow) WindowManagerHidden.DISPLAY_IME_POLICY_LOCAL else WindowManagerHidden.DISPLAY_IME_POLICY_FALLBACK_DISPLAY)
             
             SystemServices.activityTaskManager.registerTaskStackListener(taskStackListener)
             
@@ -141,8 +146,19 @@ class Controller(
         if (isDestroyed) return
         runCatching {
             if (width > 0 && height > 0) {
+                densityDpi = calculateDensity(width)
                 virtualDisplay?.resize(width, height, densityDpi)
             }
+        }
+    }
+
+    private fun calculateDensity(width: Int): Int {
+        val config = ConfigManager.instance.config
+        return if (config.dpiMode == io.github.sterlingshell.yamff.common.model.DpiMode.AUTO) {
+            val calculated = (width.toFloat() / config.autoDpiTargetWidth * BASE_DPI).toInt()
+            calculated.coerceIn(72, 1000)
+        } else {
+            config.densityDpi
         }
     }
 
