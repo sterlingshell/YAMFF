@@ -3,7 +3,6 @@ package io.github.sterlingshell.yamff.xposed.hooks.launcher
 import android.annotation.SuppressLint
 import android.app.AndroidAppHelper
 import android.content.Intent
-import android.os.UserHandle
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -68,7 +67,7 @@ object PopupHook {
                     .sendBroadcast(Intent(IpcService.ACTION_OPEN_APP).apply {
                         setPackage("android")
                         putExtra(IpcService.EXTRA_COMPONENT_NAME, componentName)
-                        putExtra(IpcService.EXTRA_USER_ID, (userHandle as? UserHandle)?.hashCode() ?: 0)
+                        putExtra(IpcService.EXTRA_USER_ID, userHandle?.hashCode() ?: 0)
                         putExtra(IpcService.EXTRA_SOURCE, IpcService.SOURCE_POPUP)
                     })
                 thiz.invokeMethodAuto("dismissTaskMenuView", thiz.getObject("mTarget"))

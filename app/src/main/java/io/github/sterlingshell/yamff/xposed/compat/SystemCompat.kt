@@ -133,9 +133,11 @@ object SystemCompat {
         if (taskDescription == null && Build.VERSION.SDK_INT >= 35) {
             // Android 15 fallback
             val runningTasks = try {
+                @Suppress("DEPRECATION")
                 Refine.unsafeCast<ActivityManagerHidden>(SystemServices.activityManager).getRunningTasks(10)
             } catch (t: Throwable) {
                 // Final fallback to direct public method
+                @Suppress("DEPRECATION")
                 runCatching { SystemServices.activityManager.getRunningTasks(10) }.getOrNull()
             }
 
