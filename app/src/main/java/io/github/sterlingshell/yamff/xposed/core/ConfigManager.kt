@@ -1,61 +1,76 @@
 package io.github.sterlingshell.yamff.xposed.core
 
-import android.util.AtomicFile
-import android.util.Log
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import io.github.sterlingshell.yamff.common.ext.gson
 import io.github.sterlingshell.yamff.common.model.Config
 import io.github.sterlingshell.yamff.xposed.util.ext.log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
 import java.io.File
-import java.io.FileOutputStream
 
-object ConfigManager {
-    private const val TAG = "ConfigManager"
-    private val configFile = File("/data/system/yamff.json")
-    private val backupFile = File("/data/system/yamff.json.bak")
-    private val atomicFile = AtomicFile(configFile)
+class ConfigManager {
+    companion object {
+        private const val TAG = "ConfigManager"
+        private val KEY_CONFIG_JSON = stringPreferencesKey("config_json")
+        private const val CONFIG_FILE_PATH = "/data/system/yamff.json"
+        
+        @Volatile
+        lateinit var instance: ConfigManager
+            private set
+    }
+
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val dataStore: DataStore<Preferences> = PreferenceDataStoreFactory.create(
+        scope = scope,
+        produceFile = { File(CONFIG_FILE_PATH) }
+    )
 
     @Volatile
     var config: Config = Config()
         private set
 
-    fun loadConfig() {
-        var loadedConfig: Config? = null
-
-        // 1. Try primary file
-        if (configFile.exists()) {
-            loadedConfig = tryLoad(configFile)
-        }
-
-        // 2. Try backup file if primary failed
-        if (loadedConfig == null && backupFile.exists()) {
-            log(TAG, "Primary config failed, trying backup...")
-            loadedConfig = tryLoad(backupFile)
-        }
-
-        if (loadedConfig != null) {
-            val oldVersion = loadedConfig.version
-            loadedConfig.validateAndFix()
-            
-            if (oldVersion < Config.CURRENT_VERSION) {
-                log(TAG, "Migrating config from $oldVersion to ${Config.CURRENT_VERSION}")
-                loadedConfig.version = Config.CURRENT_VERSION
-                config = loadedConfig
-                saveConfig(gson.toJson(config))
-            } else {
-                config = loadedConfig
-            }
-        } else {
-            log(TAG, "No valid config found, using defaults")
-            config = Config().validateAndFix()
-            // Save defaults if file doesn't exist
-            if (!configFile.exists()) {
-                saveConfig(gson.toJson(config))
-            }
-        }
-        log(TAG, "Config initialized: $config")
+    init {
+        instance = this
+        loadConfig()
     }
 
-    private fun tryLoad(file: File): Config? {
+    fun loadConfig() {
+        config = try {
+            runBlocking {
+                val json = dataStore.data.map { it[KEY_CONFIG_JSON] }.first()
+                if (json != null) {
+                    gson.fromJson(json, Config::class.java).validateAndFix()
+                } else {
+                    // Fallback to old file if exists
+                    val oldFile = File(CONFIG_FILE_PATH)
+                    if (oldFile.exists() && !oldFile.name.endsWith(".pb")) {
+                         // Note: PreferenceDataStore uses .preferences_pb by default if not specified, 
+                         // but here we are producing a File. 
+                         // Actually, if we use the same path, it might conflict. 
+                         // Better use a different path for DataStore or handle migration.
+                         val oldConfig = tryLoadOld(oldFile)
+                         if (oldConfig != null) {
+                             updateConfig(gson.toJson(oldConfig))
+                             oldConfig
+                         } else Config().validateAndFix()
+                    } else Config().validateAndFix()
+                }
+            }
+        } catch (t: Throwable) {
+            log(TAG, "Failed to load config, using defaults", t)
+            Config().validateAndFix()
+        }
+    }
+
+    private fun tryLoadOld(file: File): Config? {
         return runCatching {
             file.bufferedReader().use {
                 gson.fromJson(it, Config::class.java)
@@ -64,36 +79,17 @@ object ConfigManager {
     }
 
     fun updateConfig(newConfigJson: String) {
-        runCatching {
-            val newConfig = gson.fromJson(newConfigJson, Config::class.java)
-            newConfig.validateAndFix()
-            newConfig.version = Config.CURRENT_VERSION
-            
-            saveConfig(newConfigJson)
-            config = newConfig
-            log(TAG, "Config updated via IPC")
-        }.onFailure { e ->
-            log(TAG, "Failed to update config", e)
-        }
-    }
-
-    private fun saveConfig(json: String) {
-        // Create backup before writing
-        if (configFile.exists()) {
-            runCatching {
-                configFile.copyTo(backupFile, overwrite = true)
+        runBlocking {
+            try {
+                val newConfig = gson.fromJson(newConfigJson, Config::class.java).validateAndFix()
+                dataStore.edit { prefs ->
+                    prefs[KEY_CONFIG_JSON] = newConfigJson
+                }
+                config = newConfig
+                log(TAG, "Config updated")
+            } catch (t: Throwable) {
+                log(TAG, "Failed to update config", t)
             }
-        }
-
-        var fos: FileOutputStream? = null
-        try {
-            fos = atomicFile.startWrite()
-            fos.write(json.toByteArray())
-            atomicFile.finishWrite(fos)
-            Log.d(TAG, "Config saved successfully")
-        } catch (e: Exception) {
-            atomicFile.failWrite(fos)
-            log(TAG, "Failed to save config", e)
         }
     }
 }

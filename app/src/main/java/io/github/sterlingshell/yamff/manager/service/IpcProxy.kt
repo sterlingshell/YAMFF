@@ -99,4 +99,12 @@ object IpcProxy : IFreeform, DeathRecipient {
     override fun resetAllWindow() {
         service?.resetAllWindow()
     }
+
+    override fun getExtensionsJson(): String {
+        return service?.extensionsJson ?: "[]"
+    }
+
+    override fun updateExtensions(newConfig: String) {
+        service?.updateExtensions(newConfig)
+    }
 }

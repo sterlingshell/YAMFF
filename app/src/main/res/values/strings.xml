@@ -24,6 +24,7 @@
     <string name="reset_all_window">Reset All Window</string>
 
     <string name="nav_home">Home</string>
+    <string name="nav_extensions">Extensions</string>
     <string name="nav_settings">Settings</string>
     <string name="nav_about">About</string>
 

@@ -90,8 +90,8 @@ class Controller(
     )
 
     init {
-        val defaultWidth = ConfigManager.config.defaultWindowWidth.dpToPx().toInt()
-        val defaultHeight = ConfigManager.config.defaultWindowHeight.dpToPx().toInt()
+        val defaultWidth = ConfigManager.instance.config.defaultWindowWidth.dpToPx().toInt()
+        val defaultHeight = ConfigManager.instance.config.defaultWindowHeight.dpToPx().toInt()
         val screenWidth = context.resources.displayMetrics.widthPixels
         val screenHeight = context.resources.displayMetrics.heightPixels
 
@@ -110,7 +110,7 @@ class Controller(
             displayId = vd.display.displayId
             updateState { it.copy(displayId = displayId) }
             
-            (SystemServices.windowManager as WindowManagerHidden).setDisplayImePolicy(displayId, if (ConfigManager.config.showImeInWindow) WindowManagerHidden.DISPLAY_IME_POLICY_LOCAL else WindowManagerHidden.DISPLAY_IME_POLICY_FALLBACK_DISPLAY)
+            (SystemServices.windowManager as WindowManagerHidden).setDisplayImePolicy(displayId, if (ConfigManager.instance.config.showImeInWindow) WindowManagerHidden.DISPLAY_IME_POLICY_LOCAL else WindowManagerHidden.DISPLAY_IME_POLICY_FALLBACK_DISPLAY)
             
             SystemServices.activityTaskManager.registerTaskStackListener(taskStackListener)
             
@@ -208,8 +208,8 @@ class Controller(
     }
 
     private fun resetWindow() {
-        val defaultWidth = ConfigManager.config.defaultWindowWidth.dpToPx().toInt()
-        val defaultHeight = ConfigManager.config.defaultWindowHeight.dpToPx().toInt()
+        val defaultWidth = ConfigManager.instance.config.defaultWindowWidth.dpToPx().toInt()
+        val defaultHeight = ConfigManager.instance.config.defaultWindowHeight.dpToPx().toInt()
         val screenWidth = context.resources.displayMetrics.widthPixels
         val screenHeight = context.resources.displayMetrics.heightPixels
         
@@ -281,7 +281,7 @@ class Controller(
     }
 
     private fun handleFlickAwayBubble(velocityX: Float) {
-        if (ConfigManager.config.enableFlickAway && abs(velocityX) > FLING_THRESHOLD) {
+        if (ConfigManager.instance.config.enableFlickAway && abs(velocityX) > FLING_THRESHOLD) {
             handleClose()
         } else {
             gestureHandler.snapToEdge { isDestroyed }
@@ -409,7 +409,7 @@ class Controller(
             val debugLabel = if (BuildConfig.DEBUG) "(${snapshot.taskId}-$displayId) $label" else label
             
             var themeColors = ThemeColors()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && ConfigManager.config.coloredController) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && ConfigManager.instance.config.coloredController) {
                 val backgroundColor = taskDescription.backgroundColor
                 val statusBarColor = taskDescription.statusBarColor
                 val navigationBarColor = taskDescription.navigationBarColor

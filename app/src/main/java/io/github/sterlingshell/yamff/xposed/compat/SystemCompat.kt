@@ -6,6 +6,7 @@ import android.app.ActivityOptions
 import android.app.ActivityOptionsHidden
 import android.app.RecentTaskInfoHidden
 import android.content.ComponentName
+import android.content.pm.IPackageManagerHidden
 import android.content.pm.ParceledListSliceHidden
 import android.os.Build
 import android.os.UserHandle
@@ -20,10 +21,13 @@ import io.github.sterlingshell.yamff.xposed.core.FreeformManager
 import io.github.sterlingshell.yamff.xposed.sys.SystemServices
 
 object SystemCompat {
+    private const val TAG = "SystemCompat"
+
     fun setDisplayId(event: InputEvent, displayId: Int) {
-        runCatching {
+        try {
             Refine.unsafeCast<InputEventHidden>(event).setDisplayId(displayId)
-        }.onFailure {
+        } catch (t: Throwable) {
+            log(TAG, "Refine setDisplayId failed, falling back to reflection", t)
             runCatching {
                 event.invokeMethod("setDisplayId", args(displayId), argTypes(Int::class.java))
             }
@@ -31,25 +35,32 @@ object SystemCompat {
     }
 
     fun getDisplayId(obj: Any): Int {
-        return runCatching { Refine.unsafeCast<RecentTaskInfoHidden>(obj).displayId }.getOrNull()
-            ?: runCatching { obj.invokeMethodAutoAs<Int>("getDisplayId") }.getOrNull()
-            ?: runCatching { obj.getObjectAs<Int>("mDisplayId") }.getOrNull()
-            ?: runCatching { obj.getObjectAs<Int>("displayId") }.getOrNull()
-            ?: 0
+        return try {
+            Refine.unsafeCast<RecentTaskInfoHidden>(obj).displayId
+        } catch (t: Throwable) {
+            runCatching { obj.invokeMethodAutoAs<Int>("getDisplayId") }.getOrNull()
+                ?: runCatching { obj.getObjectAs<Int>("mDisplayId") }.getOrNull()
+                ?: runCatching { obj.getObjectAs<Int>("displayId") }.getOrNull()
+                ?: 0
+        }
     }
 
     fun getTaskId(obj: Any): Int {
-        return runCatching { Refine.unsafeCast<RecentTaskInfoHidden>(obj).taskId }.getOrNull()
-            ?: runCatching { obj.getObjectAs<Int>("mTaskId") }.getOrNull()
-            ?: runCatching { obj.invokeMethodAutoAs<Int>("getTaskId") }.getOrNull()
-            ?: runCatching { obj.getObjectAs<Int>("taskId") }.getOrNull()
-            ?: -1
+        return try {
+            Refine.unsafeCast<RecentTaskInfoHidden>(obj).taskId
+        } catch (t: Throwable) {
+            runCatching { obj.getObjectAs<Int>("mTaskId") }.getOrNull()
+                ?: runCatching { obj.invokeMethodAutoAs<Int>("getTaskId") }.getOrNull()
+                ?: runCatching { obj.getObjectAs<Int>("taskId") }.getOrNull()
+                ?: -1
+        }
     }
 
     fun setFrameRate(surface: Surface, fps: Float) {
-        runCatching {
+        try {
             Refine.unsafeCast<SurfaceHidden>(surface).setFrameRate(fps, 0)
-        }.onFailure {
+        } catch (t: Throwable) {
+            log(TAG, "Refine setFrameRate failed, falling back to reflection", t)
             runCatching {
                 surface.invokeMethod("setFrameRate", args(fps, 0), argTypes(Float::class.java, Int::class.java))
             }
@@ -57,9 +68,10 @@ object SystemCompat {
     }
 
     fun setFocusedDisplay(iwm: IWindowManager, displayId: Int) {
-        runCatching {
+        try {
             iwm.setFocusedDisplay(displayId)
-        }.onFailure {
+        } catch (t: Throwable) {
+            log(TAG, "Refine setFocusedDisplay failed, falling back to reflection", t)
             runCatching {
                 iwm.invokeMethod("setFocusedDisplay", args(displayId), argTypes(Int::class.java))
             }
@@ -74,17 +86,20 @@ object SystemCompat {
     }
 
     fun getRecentTasksList(parceledListSlice: Any): List<ActivityManager.RecentTaskInfo>? {
-        return runCatching {
+        return try {
             Refine.unsafeCast<ParceledListSliceHidden<ActivityManager.RecentTaskInfo>>(parceledListSlice).list
-        }.getOrNull() ?: runCatching {
-            parceledListSlice.invokeMethodAutoAs<List<ActivityManager.RecentTaskInfo>>("getList")
-        }.getOrNull()
+        } catch (t: Throwable) {
+            runCatching {
+                parceledListSlice.invokeMethodAutoAs<List<ActivityManager.RecentTaskInfo>>("getList")
+            }.getOrNull()
+        }
     }
 
     fun setCallerDisplayId(options: ActivityOptions, displayId: Int) {
-        runCatching {
+        try {
             Refine.unsafeCast<ActivityOptionsHidden>(options).setCallerDisplayId(displayId)
-        }.onFailure {
+        } catch (t: Throwable) {
+            log(TAG, "Refine setCallerDisplayId failed, falling back to reflection", t)
             runCatching {
                 options.invokeMethod("setCallerDisplayId", args(displayId), argTypes(Int::class.java))
             }
@@ -92,27 +107,37 @@ object SystemCompat {
     }
 
     fun getTargetComponent(itemInfo: Any): ComponentName? {
-        return runCatching { Refine.unsafeCast<RecentTaskInfoHidden>(itemInfo).targetComponent }.getOrNull()
-            ?: runCatching { itemInfo.invokeMethod("getTargetComponent") as? ComponentName }.getOrNull()
+        return try {
+            Refine.unsafeCast<RecentTaskInfoHidden>(itemInfo).targetComponent
+        } catch (t: Throwable) {
+            runCatching { itemInfo.invokeMethod("getTargetComponent") as? ComponentName }.getOrNull()
+        }
     }
 
     fun getUserHandle(itemInfo: Any): UserHandle? {
-        return runCatching { Refine.unsafeCast<RecentTaskInfoHidden>(itemInfo).user }.getOrNull()
-            ?: runCatching { itemInfo.getObject("user") as? UserHandle }.getOrNull()
+        return try {
+            Refine.unsafeCast<RecentTaskInfoHidden>(itemInfo).user
+        } catch (t: Throwable) {
+            runCatching { itemInfo.getObject("user") as? UserHandle }.getOrNull()
+        }
     }
 
     fun getTaskDescription(taskId: Int): ActivityManager.TaskDescription? {
-        val taskDescription = runCatching {
+        val taskDescription = try {
             SystemServices.activityTaskManager.getTaskDescription(taskId)
-        }.getOrNull()
+        } catch (t: Throwable) {
+            log(TAG, "getTaskDescription direct failed", t)
+            null
+        }
 
         if (taskDescription == null && Build.VERSION.SDK_INT >= 35) {
             // Android 15 fallback
-            val runningTasks = runCatching {
+            val runningTasks = try {
                 Refine.unsafeCast<ActivityManagerHidden>(SystemServices.activityManager).getRunningTasks(10)
-            }.getOrNull() ?: runCatching {
-                SystemServices.activityManager.invokeMethodAutoAs<List<ActivityManager.RunningTaskInfo>>("getRunningTasks", 10)
-            }.getOrNull()
+            } catch (t: Throwable) {
+                // Final fallback to direct public method
+                runCatching { SystemServices.activityManager.getRunningTasks(10) }.getOrNull()
+            }
 
             runningTasks?.forEach { task ->
                 if (task.taskId == taskId) return task.taskDescription
@@ -125,5 +150,13 @@ object SystemCompat {
         val taskId = getTaskId(task)
         val displayId = getDisplayId(task)
         return FreeformManager.isTaskInWindow(taskId) || FreeformManager.getWindowList().contains(displayId)
+    }
+
+    private fun log(tag: String, msg: String, t: Throwable? = null) {
+        if (t != null) {
+            io.github.sterlingshell.yamff.xposed.util.ext.log(tag, msg, t)
+        } else {
+            io.github.sterlingshell.yamff.xposed.util.ext.log(tag, msg)
+        }
     }
 }

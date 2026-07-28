@@ -17,6 +17,7 @@ val isDirty = providers.exec {
 plugins {
     id("com.android.application")
     id("kotlin-android")
+    id("org.jetbrains.kotlin.plugin.compose")
     id("dev.rikka.tools.refine") version "4.4.0"
 }
 
@@ -24,12 +25,12 @@ android {
     val buildTime = System.currentTimeMillis()
     val baseVersionName = "0.7"
 
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "io.github.sterlingshell.yamff"
         minSdk = 31
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 7
         versionName = "$baseVersionName-git.$gitHash${if (isDirty) "-dirty" else ""}"
 
@@ -92,17 +93,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = "11"
-        languageVersion = "2.0"
-    }
     buildFeatures {
         viewBinding = true
         aidl = true
         compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        buildConfig = true
     }
     lint {
         abortOnError = false
@@ -110,11 +105,18 @@ android {
     namespace = "io.github.sterlingshell.yamff"
 }
 
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+    }
+}
+
 dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.activity:activity-ktx:1.8.2")
     implementation("androidx.fragment:fragment-ktx:1.6.2")
     implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("androidx.recyclerview:recyclerview:1.4.0")
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.preference:preference-ktx:1.2.1")
@@ -164,4 +166,13 @@ dependencies {
 
     //gson
     implementation("com.google.code.gson:gson:2.10.1")
+
+    //Koin - Dependency Injection
+    implementation("io.insert-koin:koin-core:4.2.2")
+    implementation("io.insert-koin:koin-android:4.2.2")
+    implementation("io.insert-koin:koin-compose:4.2.2")
+    implementation("io.insert-koin:koin-compose-viewmodel:4.2.2")
+
+    //DataStore
+    implementation("androidx.datastore:datastore-preferences:1.2.0")
 }

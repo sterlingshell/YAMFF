@@ -1,6 +1,7 @@
 package io.github.sterlingshell.yamff.manager.ui
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
@@ -22,6 +23,7 @@ import androidx.navigation.compose.rememberNavController
 import io.github.sterlingshell.yamff.R
 import io.github.sterlingshell.yamff.manager.ui.about.About
 import io.github.sterlingshell.yamff.manager.ui.components.LocalHapticEnabled
+import io.github.sterlingshell.yamff.manager.ui.extensions.Extensions
 import io.github.sterlingshell.yamff.manager.ui.home.Home
 import io.github.sterlingshell.yamff.manager.ui.settings.Settings
 import io.github.sterlingshell.yamff.manager.ui.settings.ViewModel
@@ -31,12 +33,14 @@ enum class Destination(
     val icon: ImageVector
 ) {
     Home("home", Icons.Default.Home),
+    Extensions("extensions", Icons.Default.Extension),
     Settings("settings", Icons.Default.Settings),
     About("about", Icons.Default.Info);
 
     val labelRes: Int
         get() = when (this) {
             Home -> R.string.nav_home
+            Extensions -> R.string.nav_extensions
             Settings -> R.string.nav_settings
             About -> R.string.nav_about
         }
@@ -82,6 +86,7 @@ fun AppRoot(settingsViewModel: ViewModel = viewModel()) {
                 startDestination = Destination.Home.route
             ) {
                 composable(Destination.Home.route) { Home() }
+                composable(Destination.Extensions.route) { Extensions() }
                 composable(Destination.Settings.route) { Settings() }
                 composable(Destination.About.route) { About() }
             }

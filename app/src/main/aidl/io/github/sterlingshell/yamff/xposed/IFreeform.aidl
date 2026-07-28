@@ -27,4 +27,8 @@ interface IFreeform {
     void currentToWindow();
 
     void resetAllWindow();
+
+    String getExtensionsJson();
+
+    void updateExtensions(String newConfig);
 }

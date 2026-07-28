@@ -12,6 +12,7 @@ import de.robv.android.xposed.IXposedHookZygoteInit
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 import io.github.sterlingshell.yamff.BuildConfig
+import io.github.sterlingshell.yamff.di.coreModule
 import io.github.sterlingshell.yamff.xposed.core.IpcService
 import io.github.sterlingshell.yamff.xposed.core.FreeformManager
 import io.github.sterlingshell.yamff.xposed.core.IpcEntry
@@ -19,6 +20,7 @@ import io.github.sterlingshell.yamff.xposed.util.ext.getDisplayIdSafe
 import io.github.sterlingshell.yamff.xposed.util.ext.isTaskInFreeform
 import io.github.sterlingshell.yamff.xposed.util.ext.log
 import io.github.qauxv.util.Initiator
+import org.koin.core.context.startKoin
 import kotlin.concurrent.thread
 
 class SystemUiHook : IXposedHookZygoteInit, IXposedHookLoadPackage {
@@ -36,6 +38,13 @@ class SystemUiHook : IXposedHookZygoteInit, IXposedHookLoadPackage {
         log(TAG, "buildtype: ${BuildConfig.VERSION_NAME}(${BuildConfig.VERSION_CODE}) ${BuildConfig.BUILD_TYPE}")
         EzXHelperInit.initHandleLoadPackage(lpparam)
         Initiator.init(lpparam.classLoader)
+
+        runCatching {
+            startKoin {
+                modules(coreModule)
+            }
+            log(TAG, "Koin initialized in system_server")
+        }.onFailure { log(TAG, "Koin already initialized or failed", it) }
 
          var serviceManagerHook: XC_MethodHook.Unhook? = null
          serviceManagerHook = findMethodOrNull("android.os.ServiceManager") {
@@ -80,15 +89,18 @@ class SystemUiHook : IXposedHookZygoteInit, IXposedHookLoadPackage {
             }.onFailure { log(TAG, "Error in checkBroadcastFromSystem hook", it) }
         }
 
-        findMethodOrNull("com.android.server.am.BroadcastController") {
-            name == "checkBroadcastFromSystem"
-        }?.hookBefore {
-            runCatching {
-                val intent = it.args[0] as? Intent ?: return@runCatching
-                if (intent.action == HookLauncher.ACTION_RECEIVE_LAUNCHER_CONFIG)
-                    it.result = Unit // bypass check
-            }.onFailure { log(TAG, "Error in checkBroadcastFromSystem (BroadcastController) hook", it) }
-        }
+        // BroadcastController is introduced in Android 15 (API 35)
+        runCatching {
+            com.github.kyuubiran.ezxhelper.utils.loadClassOrNull("com.android.server.am.BroadcastController")?.findMethodOrNull {
+                name == "checkBroadcastFromSystem"
+            }?.hookBefore {
+                runCatching {
+                    val intent = it.args[0] as? Intent ?: return@runCatching
+                    if (intent.action == HookLauncher.ACTION_RECEIVE_LAUNCHER_CONFIG)
+                        it.result = Unit // bypass check
+                }.onFailure { log(TAG, "Error in checkBroadcastFromSystem (BroadcastController) hook", it) }
+            }
+        }.onFailure { log(TAG, "BroadcastController not found or hook failed", it) }
         
         hookWindowLogic()
     }

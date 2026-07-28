@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Fixating critical resource IDs to prevent resource confusion after updates -->
+
+    <!-- Layouts (Package 0x7f, Type 0x0b) -->
+    <public type="layout" name="window_app_framed" id="0x7f0b0001" />
+    <public type="layout" name="window_app_minimal" id="0x7f0b0002" />
+    <public type="layout" name="view_bubble" id="0x7f0b0003" />
+    <public type="layout" name="window_app_list" id="0x7f0b0004" />
+    <public type="layout" name="item_app" id="0x7f0b0005" />
+
+    <!-- IDs (Package 0x7f, Type 0x08) -->
+    <public type="id" name="surface" id="0x7f080001" />
+    <public type="id" name="cv_app" id="0x7f080002" />
+    <public type="id" name="iv_icon" id="0x7f080003" />
+    <public type="id" name="tv_label" id="0x7f080004" />
+    <public type="id" name="ib_close" id="0x7f080005" />
+    <public type="id" name="ib_back" id="0x7f080006" />
+    <public type="id" name="ib_rotate" id="0x7f080007" />
+    <public type="id" name="ib_fullscreen" id="0x7f080008" />
+    <public type="id" name="ib_resize" id="0x7f080009" />
+    <public type="id" name="viewport" id="0x7f08000a" />
+    <public type="id" name="viewSurface" id="0x7f08000b" />
+    <public type="id" name="viewTexture" id="0x7f08000c" />
+    <public type="id" name="ibSuper" id="0x7f08000d" />
+    <public type="id" name="root" id="0x7f08000e" />
+
+    <!-- Strings (Package 0x7f, Type 0x10) -->
+    <public type="string" name="app_name" id="0x7f100001" />
+    <public type="string" name="close_desc" id="0x7f100002" />
+    <public type="string" name="back_desc" id="0x7f100003" />
+    <public type="string" name="rotate_desc" id="0x7f100004" />
+    <public type="string" name="fullscreen_desc" id="0x7f100005" />
+
+    <!-- Drawables (Package 0x7f, Type 0x07) -->
+    <public type="drawable" name="ic_android_black_24dp" id="0x7f070001" />
+    <public type="drawable" name="ic_close_24" id="0x7f070002" />
+    <public type="drawable" name="ic_arrow_back_24" id="0x7f070003" />
+    <public type="drawable" name="ic_screen_rotation_alt_24" id="0x7f070004" />
+    <public type="drawable" name="ic_fullscreen_24" id="0x7f070005" />
+
+    <!-- Themes/Styles (Package 0x7f, Type 0x0e) -->
+    <public type="style" name="Theme.YAMFF.Window" id="0x7f0e0001" />
+
+    <!-- Arrays (Package 0x7f, Type 0x03) -->
+    <public type="array" name="xposed_scope" id="0x7f030001" />
+
+    <!-- Mipmaps (Package 0x7f, Type 0x0c) -->
+    <public type="mipmap" name="ic_launcher" id="0x7f0c0001" />
+</resources>

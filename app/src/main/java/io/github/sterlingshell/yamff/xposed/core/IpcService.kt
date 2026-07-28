@@ -28,10 +28,15 @@ import io.github.sterlingshell.yamff.xposed.util.ext.launch
 import io.github.sterlingshell.yamff.xposed.window.AppPicker
 import io.github.sterlingshell.yamff.xposed.window.Window
 import io.github.qauxv.ui.CommonContextWrapper
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import rikka.hidden.compat.ActivityManagerApis
 
-object IpcService : IFreeform.Stub() {
+object IpcService : IFreeform.Stub(), KoinComponent {
     const val TAG = "IpcService"
+    
+    private val configManager: ConfigManager by inject()
+    private val extensionRegistry: ExtensionRegistry by inject()
 
     const val ACTION_GET_LAUNCHER_CONFIG = "io.github.sterlingshell.yamff.ACTION_GET_LAUNCHER_CONFIG"
     const val ACTION_OPEN_APP = "io.github.sterlingshell.yamff.action.OPEN_APP"
@@ -73,7 +78,7 @@ object IpcService : IFreeform.Stub() {
         }
         systemContext.registerReceiver(ACTION_GET_LAUNCHER_CONFIG) { _, intent ->
             ActivityManagerApis.broadcastIntent(Intent(HookLauncher.ACTION_RECEIVE_LAUNCHER_CONFIG).apply {
-                val config = ConfigManager.config
+                val config = configManager.config
                 log(TAG, "send config: ${config.hookLauncher}")
                 putExtra(HookLauncher.EXTRA_HOOK_RECENTS, config.hookLauncher.hookRecents)
                 putExtra(HookLauncher.EXTRA_HOOK_TASKBAR, config.hookLauncher.hookTaskbar)
@@ -82,20 +87,27 @@ object IpcService : IFreeform.Stub() {
                 `package` = intent.getStringExtra("sender")
             }, 0)
         }
-        ConfigManager.loadConfig()
     }
 
     fun createWindow(request: LaunchRequest?) {
         SystemServices.iStatusBarService.collapsePanels()
         runCatching {
+            // Force refresh package info to avoid stale ApplicationInfo and Resource ID mismatches
+            val pms = SystemServices.packageManager
+            val ai = pms.getApplicationInfo(BuildConfig.APPLICATION_ID, 0)
+            
             val moduleContext = systemContext.createPackageContext(
                 BuildConfig.APPLICATION_ID,
                 Context.CONTEXT_INCLUDE_CODE or Context.CONTEXT_IGNORE_SECURITY
             )
+            
+            // Log for debugging ID drift
+            log(TAG, "Creating window with module context: ${moduleContext.packageCodePath}")
+            
             Window(
                 CommonContextWrapper.createAppCompatContext(moduleContext),
-                ConfigManager.config.densityDpi,
-                ConfigManager.config.flags,
+                configManager.config.densityDpi,
+                configManager.config.flags,
                 request?.startRect
             ) { displayId ->
                 FreeformManager.addWindow(displayId)
@@ -134,12 +146,12 @@ object IpcService : IFreeform.Stub() {
     }
 
     override fun getConfigJson(): String {
-        return gson.toJson(ConfigManager.config)
+        return gson.toJson(configManager.config)
     }
 
     override fun updateConfig(newConfig: String) {
         runMain {
-            ConfigManager.updateConfig(newConfig)
+            configManager.updateConfig(newConfig)
         }
     }
 
@@ -175,6 +187,19 @@ object IpcService : IFreeform.Stub() {
         }
     }
 
+    override fun getExtensionsJson(): String {
+        return gson.toJson(extensionRegistry.getAllAuthorizedPackages())
+    }
+
+    override fun updateExtensions(newConfig: String) {
+        runMain {
+            val authorized: Set<String> = gson.fromJson(newConfig, object : com.google.gson.reflect.TypeToken<Set<String>>() {}.type)
+            val current = extensionRegistry.getAllAuthorizedPackages()
+            (current - authorized).forEach { extensionRegistry.setAuthorized(it, false) }
+            (authorized - current).forEach { extensionRegistry.setAuthorized(it, true) }
+        }
+    }
+
     @Suppress("DEPRECATION")
     private val OpenInYAMFFBroadcastReceiver: BroadcastReceiver.(Context, Intent) -> Unit =
         { _: Context, intent: Intent ->
@@ -184,7 +209,7 @@ object IpcService : IFreeform.Stub() {
             val source = intent.getIntExtra(EXTRA_SOURCE, SOURCE_UNSPECIFIED)
             createWindow(LaunchRequest(componentName, userId, taskId))
 
-            if (source == SOURCE_RECENTS && ConfigManager.config.recentsBackHome) {
+            if (source == SOURCE_RECENTS && configManager.config.recentsBackHome) {
                 runCatching {
                     val down = KeyEvent(
                         SystemClock.uptimeMillis(),

@@ -51,7 +51,7 @@ class MinimalRenderer(context: Context) : BaseRenderer<WindowAppMinimalBinding>(
         val viewSurface = binding.viewSurface
         val viewTexture = binding.viewTexture
         
-        val surfaceType = runCatching { ConfigManager.config.surfaceView }.getOrNull() ?: SurfaceType.TEXTURE
+        val surfaceType = runCatching { ConfigManager.instance.config.surfaceView }.getOrNull() ?: SurfaceType.TEXTURE
         if (surfaceType == SurfaceType.SURFACE) {
             internalSurfaceView = viewSurface
             viewSurface.isVisible = true
@@ -230,7 +230,7 @@ class MinimalRenderer(context: Context) : BaseRenderer<WindowAppMinimalBinding>(
                 this.height = if (state.contentReady) scaledHeight else 0
             }
 
-            val surfaceType = runCatching { ConfigManager.config.surfaceView }.getOrNull() ?: SurfaceType.TEXTURE
+            val surfaceType = runCatching { ConfigManager.instance.config.surfaceView }.getOrNull() ?: SurfaceType.TEXTURE
             val isSurfaceView = surfaceType == SurfaceType.SURFACE
             val lockContentSize = state.isScaling && isSurfaceView
 

@@ -23,6 +23,7 @@
     <string name="reset_all_window">重置所有窗口</string>
 
     <string name="nav_home">首页</string>
+    <string name="nav_extensions">扩展</string>
     <string name="nav_settings">设置</string>
     <string name="nav_about">关于</string>
 

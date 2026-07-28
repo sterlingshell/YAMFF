@@ -2,6 +2,9 @@ package io.github.sterlingshell.yamff.manager
 
 import android.app.Application
 import com.google.android.material.color.DynamicColors
+import io.github.sterlingshell.yamff.di.appModule
+import org.koin.android.ext.koin.androidContext
+import org.koin.core.context.startKoin
 
 object AppHolder {
     lateinit var app: Application
@@ -17,5 +20,10 @@ class App: Application() {
         super.onCreate()
         AppHolder.init(this)
         DynamicColors.applyToActivitiesIfAvailable(this)
+
+        startKoin {
+            androidContext(this@App)
+            modules(appModule)
+        }
     }
 }

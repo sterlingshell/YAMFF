@@ -42,7 +42,7 @@ class Bubble(context: Context) : FrameLayout(context) {
                         isDragging = true
                         actionHandler?.invoke(Action.StartBubbleDrag)
                         actionHandler?.invoke(Action.RequestMoveToTop)
-                        if (ConfigManager.config.hapticFeedback) {
+                        if (ConfigManager.instance.config.hapticFeedback) {
                             v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         }
                     }

@@ -15,4 +15,24 @@ public interface IPackageManagerHidden {
 
     ActivityInfo getActivityInfo(ComponentName className, int flags, int userId)
             throws RemoteException;
+
+    @RequiresApi(33)
+    PackageInfo getPackageInfo(String packageName, long flags, int userId)
+            throws RemoteException;
+
+    PackageInfo getPackageInfo(String packageName, int flags, int userId)
+            throws RemoteException;
+
+    int checkPermission(String permName, String pkgName, int userId)
+            throws RemoteException;
+
+    int getPackageUid(String packageName, int flags, int userId)
+            throws RemoteException;
+
+    @RequiresApi(33)
+    int getPackageUid(String packageName, long flags, int userId)
+            throws RemoteException;
+
+    String[] getPackagesForUid(int uid)
+            throws RemoteException;
 }

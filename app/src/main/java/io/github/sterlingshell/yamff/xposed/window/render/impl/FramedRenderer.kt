@@ -44,7 +44,7 @@ class FramedRenderer(context: Context) : BaseRenderer<WindowAppFramedBinding>(co
     }
 
     private fun setupSurfaceView() {
-        val surfaceType = runCatching { ConfigManager.config.surfaceView }.getOrNull() ?: SurfaceType.TEXTURE
+        val surfaceType = runCatching { ConfigManager.instance.config.surfaceView }.getOrNull() ?: SurfaceType.TEXTURE
         if (surfaceType == SurfaceType.SURFACE) {
             internalSurfaceView = SurfaceView(context)
         } else {
@@ -199,7 +199,7 @@ class FramedRenderer(context: Context) : BaseRenderer<WindowAppFramedBinding>(co
                 height = if (state.contentReady) containerH else 0
             }
             
-            val surfaceType = runCatching { ConfigManager.config.surfaceView }.getOrNull() ?: SurfaceType.TEXTURE
+            val surfaceType = runCatching { ConfigManager.instance.config.surfaceView }.getOrNull() ?: SurfaceType.TEXTURE
             val isSurfaceView = surfaceType == SurfaceType.SURFACE
             val lockContentSize = state.isScaling && isSurfaceView
 

@@ -39,7 +39,7 @@ class Window(
     }
 
     private val renderer: Renderer = run {
-        val style = runCatching { ConfigManager.config.windowStyle }.getOrNull() ?: WindowStyle.GESTURE
+        val style = runCatching { ConfigManager.instance.config.windowStyle }.getOrNull() ?: WindowStyle.GESTURE
         if (style == WindowStyle.GESTURE) {
             MinimalRenderer(context)
         } else {
@@ -70,7 +70,7 @@ class Window(
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
         
-        val finalFlags = if (ConfigManager.config.showForceShowIME) {
+        val finalFlags = if (ConfigManager.instance.config.showForceShowIME) {
             lpFlags
         } else {
             lpFlags or WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM
@@ -150,7 +150,7 @@ class Window(
         runCatching {
             if (width > 0 && height > 0) {
                 surface.setDefaultBufferSize(width, height)
-                val isSurfaceView = ConfigManager.config.surfaceView == SurfaceType.SURFACE
+                val isSurfaceView = ConfigManager.instance.config.surfaceView == SurfaceType.SURFACE
                 if (!isSurfaceView || !controller.state.isScaling) {
                     controller.resizeDisplay(width, height)
                 }

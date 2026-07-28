@@ -75,7 +75,7 @@ abstract class BaseRenderer<VB : ViewBinding>(val context: Context) : Renderer {
     protected fun updateExclusionRects() {
         val root = binding.root
         if (!root.isAttachedToWindow) return
-        if (ConfigManager.config.excludeSystemGesture) {
+        if (ConfigManager.instance.config.excludeSystemGesture) {
             root.post {
                 if (root.isAttachedToWindow) {
                     val rects = listOf(Rect(0, 0, root.width, root.height))
@@ -166,7 +166,7 @@ abstract class BaseRenderer<VB : ViewBinding>(val context: Context) : Renderer {
 
         if (state.isCollapsed) return
 
-        val isSurfaceView = ConfigManager.config.surfaceView == SurfaceType.SURFACE
+        val isSurfaceView = ConfigManager.instance.config.surfaceView == SurfaceType.SURFACE
 
         if (state.isScaling) {
             if (!isSurfaceView) {
@@ -309,7 +309,7 @@ abstract class BaseRenderer<VB : ViewBinding>(val context: Context) : Renderer {
                     initialRatio = initialWidth.toFloat() / initialHeight
                     sizePreviewer.isVisible = true
                     
-                    if (ConfigManager.config.surfaceView == SurfaceType.SURFACE) {
+                    if (ConfigManager.instance.config.surfaceView == SurfaceType.SURFACE) {
                         bufferWidth = initialWidth
                         bufferHeight = initialHeight
                         captureAndBlur()

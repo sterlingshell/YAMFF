@@ -54,7 +54,7 @@ fun startActivity(context: Context, componentName: ComponentName, userId: Int, d
 }
 
 fun moveToDisplay(context: Context, taskId: Int, componentName: ComponentName, userId: Int, displayId: Int) {
-    when (ConfigManager.config.windowfy) {
+    when (ConfigManager.instance.config.windowfy) {
         0 -> {
             runCatching {
                 moveTask(taskId, displayId)

@@ -2,6 +2,18 @@
 <manifest xmlns:tools="http://schemas.android.com/tools"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <permission
+        android:name="io.github.sterlingshell.yamff.permission.MANAGE_FREEFORM"
+        android:protectionLevel="signatureOrSystem" />
+
+    <uses-permission android:name="io.github.sterlingshell.yamff.permission.MANAGE_FREEFORM" />
+
+    <queries>
+        <intent>
+            <action android:name="io.github.sterlingshell.yamff.action.FREEFORM_EXTENSION" />
+        </intent>
+    </queries>
+
     <application
         android:name=".manager.App"
         android:allowBackup="false"
@@ -13,7 +25,7 @@
         tools:ignore="DataExtractionRules">
         
         <provider
-            android:authorities="io.github.sterlingshell.yamff.provider"
+            android:authorities="io.github.sterlingshell.yamff.yamff.provider"
             android:name=".manager.provider.Provider"
             android:exported="true"
             tools:ignore="ExportedContentProvider" />
