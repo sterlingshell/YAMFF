@@ -14,9 +14,11 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
 import java.io.File
 
-class ConfigManager {
+class ConfigManager : KoinComponent {
     companion object {
         private const val TAG = "ConfigManager"
         private val KEY_CONFIG_JSON = stringPreferencesKey("config_json")
@@ -24,8 +26,23 @@ class ConfigManager {
         private const val CONFIG_FILE_PATH = "/data/system/yamff.preferences_pb"
         
         @Volatile
-        lateinit var instance: ConfigManager
-            private set
+        private var _instance: ConfigManager? = null
+
+        val instance: ConfigManager
+            get() = _instance ?: synchronized(this) {
+                _instance ?: run {
+                    // Fallback to Koin if instance not set but Koin might have it
+                    try {
+                        val koinInstance = object : KoinComponent {}.get<ConfigManager>()
+                        _instance = koinInstance
+                        koinInstance
+                    } catch (_: Throwable) {
+                        // Create a temporary one if absolutely necessary? 
+                        // No, better throw or return a default if it's too early.
+                        throw UninitializedPropertyAccessException("ConfigManager not initialized")
+                    }
+                }
+            }
     }
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -39,7 +56,7 @@ class ConfigManager {
         private set
 
     init {
-        instance = this
+        _instance = this
         loadConfig()
     }
 

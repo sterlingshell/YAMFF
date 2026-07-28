@@ -1,14 +1,14 @@
 # 📚 YAMFF (Yet Another Mi-FreeForm) Code & Architecture Conventions
 > **Last synced:** 2026-07-27
 
-To maintain consistency, readability, and a domain-specific vocabulary across the project, all contributors must strictly adhere to the following naming conventions and architectural guidelines.
+To maintain consistency, readability, and a domain-specific vocabulary across the project, all contributors must strictly adhere to the following naming conventions and architectural guidelines. YAMFF is the project abbreviation and must always be written in all-caps.
 
 ---
 
 ## 1. Core Design Principles
 
 1. **Package as Context:**
-   The base package for this project is `io.github.sterlingshell.yamff`. Inside dedicated sub-packages (e.g., `window`), avoid prefixing every class with redundant words like `Freeform` or `Yam`. Let the package hierarchy supply the contextual safety.
+   The base package for this project is `io.github.sterlingshell.yamff`. Inside dedicated sub-packages (e.g., `window`), avoid prefixing every class with redundant words like `Freeform` or `YAMFF`. Let the package hierarchy supply the contextual safety.
 2. **Entity vs. Capability Distinction:**
 * **`Window`**: Represents **concrete UI entities and control logic** within the core module (`Window`, `State`, `Controller`).
 * **`Freeform`**: Represents **system-level modes, behaviors, IPC protocols, and global services** (`FreeformManager`, `LaunchRequest`).

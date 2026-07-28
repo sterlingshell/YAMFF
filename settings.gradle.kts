@@ -18,5 +18,5 @@ dependencyResolutionManagement {
     }
 }
 
-include(":app", ":android-stub")
+include(":app", ":android-stub", ":YAMFF-SDK")
 rootProject.name = "YAMFF"

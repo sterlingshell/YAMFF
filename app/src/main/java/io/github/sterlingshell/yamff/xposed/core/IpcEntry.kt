@@ -10,19 +10,22 @@ import android.os.ServiceManager
 import dev.rikka.tools.refine.Refine
 import io.github.sterlingshell.yamff.BuildConfig
 import io.github.sterlingshell.yamff.xposed.util.ext.log
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import rikka.hidden.compat.ActivityManagerApis
 import rikka.hidden.compat.adapter.UidObserverAdapter
 
-object IpcEntry {
+object IpcEntry : KoinComponent {
     const val TAG = "IpcEntry"
 
+    private val extensionRegistry: ExtensionRegistry by inject()
     private var earlyPms: IPackageManager? = null
 
     private val uidObserver = object : UidObserverAdapter() {
         override fun onUidActive(uid: Int) {
             try {
                 // Use earlyPms if SystemServices is not yet initialized
-                val authorizedPackages = ExtensionRegistry.instance.getAuthorizedPackages(uid, earlyPms)
+                val authorizedPackages = extensionRegistry.getAuthorizedPackages(uid, earlyPms)
                 if (authorizedPackages.isNotEmpty()) {
                     log(TAG, "Authorized extension UID active: $uid, pushing binder to $authorizedPackages...")
                     authorizedPackages.forEach { pkg ->
@@ -35,10 +38,11 @@ object IpcEntry {
         }
     }
 
-    private fun sendBinderWithRetry(uid: Int, packageName: String, retryCount: Int = 5) {
+    private fun sendBinderWithRetry(uid: Int, packageName: String, retryCount: Int = 10) {
         kotlin.concurrent.thread {
             var currentRetry = 0
             val authority = packageName + io.github.sterlingshell.yamff.common.Constants.PROVIDER_SUFFIX
+            log(TAG, "Starting binder push task for $packageName (UID: $uid, Authority: $authority)")
             while (currentRetry < retryCount) {
                 try {
                     val userId = uid / 100000
@@ -49,23 +53,31 @@ object IpcEntry {
                         null
                     )
                     if (provider != null) {
+                        log(TAG, "Got provider for $authority, calling...")
                         val extras = Bundle()
                         extras.putBinder("binder", IpcService)
-                        val attr = AttributionSource.Builder(1000).setPackageName("android").build()
-                        val reply = provider.call(attr, authority, "", null, extras)
+                        val attr =
+                            AttributionSource.Builder(1000).setPackageName("android").build()
+
+                        val reply =
+                            provider.call(attr, authority, "link", null, extras)
+
                         if (reply != null) {
                             log(TAG, "Successfully sent binder to extension ($packageName, UID: $uid)")
                             return@thread
+                        } else {
+                            log(TAG, "Provider.call returned null for $packageName")
                         }
+                    } else {
+                        log(TAG, "Provider $authority is NULL for UID $uid")
                     }
-                    log(TAG, "Provider $authority not ready for UID $uid, retry ${currentRetry + 1}/$retryCount")
                 } catch (e: Throwable) {
                     log(TAG, "Failed to send binder to $packageName (UID: $uid), retry ${currentRetry + 1}/$retryCount", e)
                 }
                 currentRetry++
-                Thread.sleep(1000)
+                Thread.sleep(2000)
             }
-            log(TAG, "Failed to send binder to $packageName after $retryCount retries (UID: $uid)")
+            log(TAG, "FATAL: Failed to send binder to $packageName after $retryCount retries (UID: $uid)")
         }
     }
 
@@ -93,6 +105,7 @@ object IpcEntry {
                 }
                 if (packageUid != -1) {
                     log(TAG, "Self-pushing binder to Manager (UID: $packageUid)")
+                    IpcService.managerUid = packageUid
                     sendBinderWithRetry(packageUid, BuildConfig.APPLICATION_ID)
                 }
             }

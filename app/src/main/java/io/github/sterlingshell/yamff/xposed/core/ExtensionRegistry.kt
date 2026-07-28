@@ -6,7 +6,6 @@ import android.content.pm.PackageManager
 import android.content.pm.Signature
 import android.os.Build
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -23,17 +22,31 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
 import java.io.File
-import java.util.Arrays
+import java.util.concurrent.ConcurrentHashMap
 
-class ExtensionRegistry {
+class ExtensionRegistry : KoinComponent {
     companion object {
         private const val TAG = "ExtensionRegistry"
         private val KEY_AUTHORIZED_PACKAGES = stringSetPreferencesKey("authorized_packages")
 
         @Volatile
-        lateinit var instance: ExtensionRegistry
-            private set
+        private var _instance: ExtensionRegistry? = null
+
+        val instance: ExtensionRegistry
+            get() = _instance ?: synchronized(this) {
+                _instance ?: run {
+                    try {
+                        val koinInstance = object : KoinComponent {}.get<ExtensionRegistry>()
+                        _instance = koinInstance
+                        koinInstance
+                    } catch (_: Throwable) {
+                        throw UninitializedPropertyAccessException("ExtensionRegistry not initialized")
+                    }
+                }
+            }
     }
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -43,10 +56,48 @@ class ExtensionRegistry {
     )
 
     private var mySignatures: Array<Signature>? = null
+    
+    // Memory cache for fast UID lookups during IPC
+    val authorizedUids: MutableSet<Int> = ConcurrentHashMap.newKeySet()
 
     init {
-        instance = this
+        _instance = this
         migrateOldConfig()
+        // Synchronously load cache on cold start
+        refreshUidCache()
+    }
+
+    /**
+     * Translates package names in DataStore to system UIDs and populates the memory cache.
+     */
+    fun refreshUidCache(pms: Any? = null) {
+        runBlocking {
+            try {
+                val pm = pms ?: runCatching { SystemServices.iPackageManager }.getOrNull()
+                if (pm == null) {
+                    log(TAG, "PMS not ready, cannot refresh UID cache")
+                    return@runBlocking
+                }
+                val pmHidden = Refine.unsafeCast<IPackageManagerHidden>(pm)
+                
+                val authorizedPackages = dataStore.data.map { it[KEY_AUTHORIZED_PACKAGES] ?: emptySet() }.first()
+                val newUids = authorizedPackages.mapNotNull { pkg ->
+                    runCatching {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            pmHidden.getPackageUid(pkg, 0L, 0)
+                        } else {
+                            pmHidden.getPackageUid(pkg, 0, 0)
+                        }
+                    }.getOrNull()
+                }.filter { it != -1 }
+
+                authorizedUids.clear()
+                authorizedUids.addAll(newUids)
+                log(TAG, "UID cache refreshed: $authorizedUids")
+            } catch (t: Throwable) {
+                log(TAG, "Failed to refresh UID cache", t)
+            }
+        }
     }
 
     private fun migrateOldConfig() {
@@ -128,7 +179,7 @@ class ExtensionRegistry {
         for (i in mySigs.indices) {
             val sig1 = mySigs[i].toByteArray()
             val sig2 = targetSigs[i].toByteArray()
-            if (!Arrays.equals(sig1, sig2)) return false
+            if (!sig1.contentEquals(sig2)) return false
         }
         return true
     }
@@ -144,25 +195,16 @@ class ExtensionRegistry {
         return try {
             val pm = pms ?: SystemServices.iPackageManager
             val pmHidden = Refine.unsafeCast<IPackageManagerHidden>(pm)
-            val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val flags =
                 PackageManager.GET_SIGNING_CERTIFICATES
-            } else {
-                @Suppress("DEPRECATION")
-                PackageManager.GET_SIGNATURES
-            }
-            
+
             val pi: PackageInfo = if (Build.VERSION.SDK_INT >= 33) {
                 pmHidden.getPackageInfo(packageName, flags.toLong(), uid / 100000)
             } else {
                 pmHidden.getPackageInfo(packageName, flags, uid / 100000)
             }
-            
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                pi.signingInfo?.apkContentsSigners
-            } else {
-                @Suppress("DEPRECATION")
-                pi.signatures
-            }
+
+            pi.signingInfo?.apkContentsSigners
         } catch (t: Throwable) {
             log(TAG, "getSignatures crash suppressed", t)
             null

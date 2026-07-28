@@ -13,6 +13,8 @@ import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 import io.github.sterlingshell.yamff.BuildConfig
 import io.github.sterlingshell.yamff.di.coreModule
+import io.github.sterlingshell.yamff.xposed.core.ConfigManager
+import io.github.sterlingshell.yamff.xposed.core.ExtensionRegistry
 import io.github.sterlingshell.yamff.xposed.core.IpcService
 import io.github.sterlingshell.yamff.xposed.core.FreeformManager
 import io.github.sterlingshell.yamff.xposed.core.IpcEntry
@@ -21,9 +23,11 @@ import io.github.sterlingshell.yamff.xposed.util.ext.isTaskInFreeform
 import io.github.sterlingshell.yamff.xposed.util.ext.log
 import io.github.qauxv.util.Initiator
 import org.koin.core.context.startKoin
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
 import kotlin.concurrent.thread
 
-class SystemUiHook : IXposedHookZygoteInit, IXposedHookLoadPackage {
+class SystemUiHook : IXposedHookZygoteInit, IXposedHookLoadPackage, KoinComponent {
     companion object {
         private const val TAG = "SystemUiHook"
     }
@@ -34,17 +38,21 @@ class SystemUiHook : IXposedHookZygoteInit, IXposedHookLoadPackage {
 
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
         if (lpparam.packageName != "android") return
-        log(TAG, "xposed init")
-        log(TAG, "buildtype: ${BuildConfig.VERSION_NAME}(${BuildConfig.VERSION_CODE}) ${BuildConfig.BUILD_TYPE}")
+        log(TAG, "YAMFF SystemUiHook: android loaded")
+        log(TAG, "Build: ${BuildConfig.VERSION_NAME}(${BuildConfig.VERSION_CODE}) ${BuildConfig.BUILD_TYPE}")
+        
         EzXHelperInit.initHandleLoadPackage(lpparam)
         Initiator.init(lpparam.classLoader)
 
         runCatching {
-            startKoin {
+            org.koin.core.context.GlobalContext.getOrNull() ?: startKoin {
                 modules(coreModule)
             }
-            log(TAG, "Koin initialized in system_server")
-        }.onFailure { log(TAG, "Koin already initialized or failed", it) }
+            // Force eager initialization of singletons
+            get<ConfigManager>()
+            get<ExtensionRegistry>()
+            log(TAG, "Koin and core components initialized in system_server")
+        }.onFailure { log(TAG, "Koin init failed (might be already started)", it) }
 
          var serviceManagerHook: XC_MethodHook.Unhook? = null
          serviceManagerHook = findMethodOrNull("android.os.ServiceManager") {

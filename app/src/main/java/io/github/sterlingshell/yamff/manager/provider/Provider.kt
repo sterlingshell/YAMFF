@@ -4,6 +4,7 @@ import android.content.ContentProvider
 import android.content.ContentValues
 import android.net.Uri
 import android.os.Bundle
+import io.github.sterlingshell.yamff.BuildConfig
 import io.github.sterlingshell.yamff.manager.service.IpcProxy
 
 class Provider: ContentProvider() {
@@ -31,9 +32,29 @@ class Provider: ContentProvider() {
     ) = 0
 
     override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
-        if (android.os.Binder.getCallingUid() != 1000 || extras == null) return null
-        val binder = extras.getBinder("binder") ?: return null
+        val callingUid = android.os.Binder.getCallingUid()
+        if (BuildConfig.DEBUG) {
+            android.util.Log.i("YAMFF.Provider", "Provider.call: method=$method, uid=$callingUid")
+        }
+        
+        if (callingUid != 1000 || extras == null) {
+             if (BuildConfig.DEBUG) {
+                 android.util.Log.w("YAMFF.Provider", "Unauthorized or empty call from UID $callingUid")
+             }
+             return null
+        }
+        
+        val binder = extras.getBinder("binder") ?: run {
+            if (BuildConfig.DEBUG) {
+                android.util.Log.w("YAMFF.Provider", "No binder in extras")
+            }
+            return null
+        }
+        
+        if (BuildConfig.DEBUG) {
+            android.util.Log.i("YAMFF.Provider", "Linking service from system...")
+        }
         IpcProxy.linkService(binder)
-        return Bundle()
+        return Bundle().apply { putBoolean("success", true) }
     }
 }

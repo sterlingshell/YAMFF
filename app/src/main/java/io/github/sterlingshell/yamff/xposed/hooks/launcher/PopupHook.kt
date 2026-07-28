@@ -8,13 +8,11 @@ import android.widget.ImageView
 import android.widget.TextView
 import com.github.kyuubiran.ezxhelper.init.InitFields.moduleRes
 import com.github.kyuubiran.ezxhelper.utils.findAllMethods
-import com.github.kyuubiran.ezxhelper.utils.findConstructor
 import com.github.kyuubiran.ezxhelper.utils.findField
 import com.github.kyuubiran.ezxhelper.utils.getObject
 import com.github.kyuubiran.ezxhelper.utils.hookBefore
 import com.github.kyuubiran.ezxhelper.utils.invokeMethodAuto
 import com.github.kyuubiran.ezxhelper.utils.loadClass
-import com.github.kyuubiran.ezxhelper.utils.paramCount
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 import io.github.sterlingshell.yamff.R
@@ -95,14 +93,34 @@ object PopupHook {
     }
 
     private fun getOpenInYAMFFSystemShortcutFactory(classLoader: ClassLoader): Any {
-        return Proxy.newProxyInstance(
-            classLoader, arrayOf(loadClass("com.android.launcher3.popup.SystemShortcut\$Factory"))
-        ) { _, method, args ->
-            if (method.name != "getShortcut") return@newProxyInstance Unit
-            return@newProxyInstance loadClass("com.android.launcher3.popup.SystemShortcut\$Install")
-                .findConstructor { paramCount == 3 }
-                .newInstance(args[0], args[1], args[2])
-                .also { proxyInstances.add(it) }
+        val factoryClass = loadClass("com.android.launcher3.popup.SystemShortcut\$Factory")
+        val installClass = loadClass("com.android.launcher3.popup.SystemShortcut\$Install")
+        val appInfoClass = loadClass("com.android.launcher3.popup.SystemShortcut\$AppInfo")
+
+        return Proxy.newProxyInstance(classLoader, arrayOf(factoryClass)) { _, method, args ->
+            if (method.name != "getShortcut") return@newProxyInstance null
+            
+            runCatching {
+                // Try SystemShortcut$Install first (preferred)
+                val constructor = installClass.constructors.find { it.parameterTypes.size == args.size }
+                    ?: installClass.declaredConstructors.find { it.parameterTypes.size == args.size }
+                
+                if (constructor != null) {
+                    constructor.isAccessible = true
+                    constructor.newInstance(*args).also { proxyInstances.add(it) }
+                } else {
+                    // Fallback to SystemShortcut$AppInfo (more universal)
+                    val appInfoConstructor = appInfoClass.constructors.find { it.parameterTypes.size == args.size }
+                        ?: appInfoClass.declaredConstructors.find { it.parameterTypes.size == args.size }
+                    
+                    appInfoConstructor?.let {
+                        it.isAccessible = true
+                        it.newInstance(*args).also { instance -> proxyInstances.add(instance) }
+                    }
+                }
+            }.onFailure { t ->
+                log(TAG, "Failed to create shortcut instance", t)
+            }.getOrNull()
         }
     }
 }

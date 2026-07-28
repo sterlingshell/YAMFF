@@ -125,6 +125,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
+    implementation(project(":YAMFF-SDK"))
     compileOnly(project(":android-stub"))
     compileOnly("dev.rikka.hidden:stub:4.4.0")
     implementation("dev.rikka.hidden:compat:4.4.0")

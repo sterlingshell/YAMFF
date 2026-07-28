@@ -12,7 +12,7 @@
 
 基础包：`io.github.sterlingshell.yamff`
 
-进了子包（比如 `window`），类名就别再带 `Freeform`、`Yam` 这种前缀了——包路径已经告诉你它是什么了。
+进了子包（比如 `window`），类名就别再带 `Freeform`、`YAMFF` 这种前缀了——包路径已经告诉你它是什么了。
 
 ### `Window` vs `Freeform` 的分工
 

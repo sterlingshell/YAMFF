@@ -5,7 +5,10 @@ import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.os.Parcel
 import android.os.Process
+import android.os.RemoteCallbackList
 import android.os.SystemClock
 import android.view.InputDevice
 import android.view.KeyEvent
@@ -17,7 +20,6 @@ import io.github.sterlingshell.yamff.xposed.IFreeform
 import io.github.sterlingshell.yamff.xposed.IOpenCountListener
 import io.github.sterlingshell.yamff.xposed.IConfigChangeListener
 import io.github.sterlingshell.yamff.xposed.IExtensionsChangeListener
-import android.os.RemoteCallbackList
 import io.github.sterlingshell.yamff.xposed.compat.SystemCompat
 import io.github.sterlingshell.yamff.xposed.hooks.HookLauncher
 import io.github.sterlingshell.yamff.xposed.sys.SystemServices
@@ -31,6 +33,7 @@ import io.github.sterlingshell.yamff.xposed.util.ext.launch
 import io.github.sterlingshell.yamff.xposed.window.AppPicker
 import io.github.sterlingshell.yamff.xposed.window.Window
 import io.github.qauxv.ui.CommonContextWrapper
+import kotlin.concurrent.thread
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import rikka.hidden.compat.ActivityManagerApis
@@ -40,7 +43,10 @@ object IpcService : IFreeform.Stub(), KoinComponent {
     
     private val configManager: ConfigManager by inject()
     private val extensionRegistry: ExtensionRegistry by inject()
-    
+
+    @Volatile
+    var managerUid: Int = -1
+
     private val configListeners = RemoteCallbackList<IConfigChangeListener>()
     private val extensionsListeners = RemoteCallbackList<IExtensionsChangeListener>()
 
@@ -66,6 +72,16 @@ object IpcService : IFreeform.Stub(), KoinComponent {
     @Suppress("DEPRECATION")
     fun systemReady() {
         SystemServices.init(activityManagerService)
+        log(TAG, "systemReady: initializing fallbacks")
+        
+        // Ensure IpcEntry is registered even if addService hook was missed
+        thread {
+            runCatching {
+                val pms = SystemServices.iPackageManager
+                IpcEntry.register(pms)
+            }.onFailure { log(TAG, "Fallback IpcEntry registration failed", it) }
+        }
+
         systemContext.registerReceiver(ACTION_OPEN_IN_YAMFF, OpenInYAMFFBroadcastReceiver)
         systemContext.registerReceiver(ACTION_CURRENT_TO_WINDOW) { _, _ ->
             currentToWindow()
@@ -93,15 +109,27 @@ object IpcService : IFreeform.Stub(), KoinComponent {
                 `package` = intent.getStringExtra("sender")
             }, 0)
         }
+        
+        // Listen for package changes to refresh UID cache
+        val packageFilter = IntentFilter().apply {
+            addAction(Intent.ACTION_PACKAGE_ADDED)
+            addAction(Intent.ACTION_PACKAGE_REPLACED)
+            addAction(Intent.ACTION_PACKAGE_REMOVED)
+            addDataScheme("package")
+        }
+        systemContext.registerReceiver(object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                log(TAG, "Package change detected, refreshing UID cache")
+                extensionRegistry.refreshUidCache()
+            }
+        }, packageFilter)
     }
 
     fun createWindow(request: LaunchRequest?) {
         SystemServices.iStatusBarService.collapsePanels()
         runCatching {
             // Force refresh package info to avoid stale ApplicationInfo and Resource ID mismatches
-            val pms = SystemServices.packageManager
-            val ai = pms.getApplicationInfo(BuildConfig.APPLICATION_ID, 0)
-            
+
             val moduleContext = systemContext.createPackageContext(
                 BuildConfig.APPLICATION_ID,
                 Context.CONTEXT_INCLUDE_CODE or Context.CONTEXT_IGNORE_SECURITY
@@ -127,6 +155,35 @@ object IpcService : IFreeform.Stub(), KoinComponent {
 
     init {
         log(TAG, "IPC service initialized")
+    }
+
+    override fun onTransact(code: Int, data: Parcel, reply: Parcel?, flags: Int): Boolean {
+        val callingUid = getCallingUid()
+        
+        // 1. Authorization Check
+        // code >= 1 && code <= 0x00ffffff are AIDL-generated method calls
+        if (code in FIRST_CALL_TRANSACTION..LAST_CALL_TRANSACTION) {
+             val isAuthorized = callingUid == managerUid || 
+                               callingUid == Process.SYSTEM_UID || 
+                               callingUid == Process.ROOT_UID ||
+                               extensionRegistry.authorizedUids.contains(callingUid)
+
+             if (!isAuthorized) {
+                 if (BuildConfig.DEBUG) {
+                     log(TAG, "Denied unauthorized IPC call (code: $code) from UID: $callingUid")
+                 }
+                 throw SecurityException("Calling UID $callingUid is not authorized by YAMFF Manager.")
+             }
+        }
+        
+        return try {
+            super.onTransact(code, data, reply, flags)
+        } catch (t: Throwable) {
+            if (BuildConfig.DEBUG) {
+                log(TAG, "Error in onTransact for code $code from UID $callingUid", t)
+            }
+            throw t
+        }
     }
 
     override fun getVersionName(): String {
@@ -230,6 +287,8 @@ object IpcService : IFreeform.Stub(), KoinComponent {
             val current = extensionRegistry.getAllAuthorizedPackages()
             (current - authorized).forEach { extensionRegistry.setAuthorized(it, false) }
             (authorized - current).forEach { extensionRegistry.setAuthorized(it, true) }
+            // Force refresh UID cache in memory
+            extensionRegistry.refreshUidCache()
             notifyExtensionsChanged(newConfig)
         }
     }
