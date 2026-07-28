@@ -41,7 +41,7 @@ The extra **"F"** stands for **Form** — emphasizing a cleaner MVI architecture
 
 ## 📋 Requirements
 
-- Android 12+ (API level >= 31, tested on Android 12L)
+- Android 12+ (API level >= 31, tested only on Android 12L)
 - LSPosed Framework
 
 ---
