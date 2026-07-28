@@ -11,6 +11,8 @@ public interface IWindowManager extends IInterface {
 
     void removeRotationWatcher(IRotationWatcher watcher) throws RemoteException;
 
+    void setFocusedDisplay(int displayId) throws RemoteException;
+
     abstract class Stub extends Binder implements IWindowManager {
         public static IWindowManager asInterface(IBinder obj) {
             throw new UnsupportedOperationException();

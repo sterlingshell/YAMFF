@@ -79,6 +79,16 @@ class SystemUiHook : IXposedHookZygoteInit, IXposedHookLoadPackage {
                     it.result = Unit // bypass check
             }.onFailure { log(TAG, "Error in checkBroadcastFromSystem hook", it) }
         }
+
+        findMethodOrNull("com.android.server.am.BroadcastController") {
+            name == "checkBroadcastFromSystem"
+        }?.hookBefore {
+            runCatching {
+                val intent = it.args[0] as? Intent ?: return@runCatching
+                if (intent.action == HookLauncher.ACTION_RECEIVE_LAUNCHER_CONFIG)
+                    it.result = Unit // bypass check
+            }.onFailure { log(TAG, "Error in checkBroadcastFromSystem (BroadcastController) hook", it) }
+        }
         
         hookWindowLogic()
     }

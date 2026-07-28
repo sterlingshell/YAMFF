@@ -1,6 +1,11 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+import java.util.Properties
 
-val localProperties = gradleLocalProperties(rootDir)
+val localProperties = Properties()
+val file = rootProject.file("local.properties")
+if (file.exists()) {
+    file.inputStream().use { localProperties.load(it) }
+}
 val gitHash = providers.exec {
     commandLine("git", "rev-parse", "--short", "HEAD")
 }.standardOutput.asText.getOrElse("(error)").trim()
@@ -12,19 +17,19 @@ val isDirty = providers.exec {
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    id("dev.rikka.tools.refine") version "4.3.0"
+    id("dev.rikka.tools.refine") version "4.4.0"
 }
 
 android {
     val buildTime = System.currentTimeMillis()
     val baseVersionName = "0.7"
 
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "io.github.sterlingshell.yamff"
         minSdk = 31
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 7
         versionName = "$baseVersionName-git.$gitHash${if (isDirty) "-dirty" else ""}"
 
@@ -119,8 +124,9 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
     compileOnly(project(":android-stub"))
-    compileOnly("dev.rikka.hidden:stub:4.2.0")
-    implementation("dev.rikka.hidden:compat:4.2.0")
+    compileOnly("dev.rikka.hidden:stub:4.4.0")
+    implementation("dev.rikka.hidden:compat:4.4.0")
+    implementation("dev.rikka.tools.refine:runtime:4.4.0")
 
     //never upgrade until new extension function
     //noinspection GradleDependency

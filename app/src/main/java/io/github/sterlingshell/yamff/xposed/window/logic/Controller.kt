@@ -395,7 +395,7 @@ class Controller(
                 delay(500.milliseconds)
             }
             val topActivity = snapshot.topActivity ?: return@add
-            val taskDescription = SystemServices.activityTaskManager.getTaskDescription(snapshot.taskId) ?: return@add
+            val taskDescription = SystemCompat.getTaskDescription(snapshot.taskId) ?: return@add
             val activityInfo = (SystemServices.iPackageManager as IPackageManagerHidden).getActivityInfoCompat(topActivity, 0, snapshot.userId)
             
             val icon = RoundedDrawable().apply {

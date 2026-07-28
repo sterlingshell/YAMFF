@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 31
-        targetSdk = 34
+        targetSdk = 35
 
         consumerProguardFiles("consumer-rules.pro")
     }
@@ -30,8 +30,8 @@ android {
 }
 
 dependencies {
-    annotationProcessor("dev.rikka.tools.refine:annotation-processor:4.3.0")
-    compileOnly("dev.rikka.tools.refine:annotation:4.3.0")
+    annotationProcessor("dev.rikka.tools.refine:annotation-processor:4.4.0")
+    compileOnly("dev.rikka.tools.refine:annotation:4.4.0")
     compileOnly("androidx.annotation:annotation:1.7.1")
-    compileOnly("dev.rikka.hidden:stub:4.2.0")
+    compileOnly("dev.rikka.hidden:stub:4.4.0")
 }
