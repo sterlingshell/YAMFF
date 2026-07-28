@@ -5,6 +5,8 @@ import android.os.IBinder.DeathRecipient
 import android.util.Log
 import io.github.sterlingshell.yamff.BuildConfig
 import io.github.sterlingshell.yamff.xposed.IOpenCountListener
+import io.github.sterlingshell.yamff.xposed.IConfigChangeListener
+import io.github.sterlingshell.yamff.xposed.IExtensionsChangeListener
 import io.github.sterlingshell.yamff.xposed.IFreeform
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.InvocationTargetException
@@ -86,6 +88,22 @@ object IpcProxy : IFreeform, DeathRecipient {
 
     override fun unregisterOpenCountListener(iOpenCountListener: IOpenCountListener) {
         service?.unregisterOpenCountListener(iOpenCountListener)
+    }
+
+    override fun registerConfigChangeListener(listener: IConfigChangeListener) {
+        service?.registerConfigChangeListener(listener)
+    }
+
+    override fun unregisterConfigChangeListener(listener: IConfigChangeListener) {
+        service?.unregisterConfigChangeListener(listener)
+    }
+
+    override fun registerExtensionsChangeListener(listener: IExtensionsChangeListener) {
+        service?.registerExtensionsChangeListener(listener)
+    }
+
+    override fun unregisterExtensionsChangeListener(listener: IExtensionsChangeListener) {
+        service?.unregisterExtensionsChangeListener(listener)
     }
 
     override fun openAppList() {

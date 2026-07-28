@@ -10,10 +10,26 @@ import io.github.sterlingshell.yamff.common.model.Config
 import io.github.sterlingshell.yamff.common.model.SurfaceType
 import io.github.sterlingshell.yamff.common.model.WindowStyle
 import io.github.sterlingshell.yamff.manager.service.IpcProxy
+import io.github.sterlingshell.yamff.xposed.IConfigChangeListener
 
 class ViewModel(application: Application) : AndroidViewModel(application) {
     var config: Config by mutableStateOf(gson.fromJson(IpcProxy.configJson, Config::class.java))
         private set
+
+    private val configChangeListener = object : IConfigChangeListener.Stub() {
+        override fun onConfigChanged(configJson: String) {
+            config = gson.fromJson(configJson, Config::class.java)
+        }
+    }
+
+    init {
+        IpcProxy.registerConfigChangeListener(configChangeListener)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        IpcProxy.unregisterConfigChangeListener(configChangeListener)
+    }
 
     val useAppList: Boolean get() = config.useAppList
 

@@ -20,7 +20,8 @@ class ConfigManager {
     companion object {
         private const val TAG = "ConfigManager"
         private val KEY_CONFIG_JSON = stringPreferencesKey("config_json")
-        private const val CONFIG_FILE_PATH = "/data/system/yamff.json"
+        private const val OLD_CONFIG_FILE_PATH = "/data/system/yamff.json"
+        private const val CONFIG_FILE_PATH = "/data/system/yamff.preferences_pb"
         
         @Volatile
         lateinit var instance: ConfigManager
@@ -50,16 +51,17 @@ class ConfigManager {
                     gson.fromJson(json, Config::class.java).validateAndFix()
                 } else {
                     // Fallback to old file if exists
-                    val oldFile = File(CONFIG_FILE_PATH)
-                    if (oldFile.exists() && !oldFile.name.endsWith(".pb")) {
-                         // Note: PreferenceDataStore uses .preferences_pb by default if not specified, 
-                         // but here we are producing a File. 
-                         // Actually, if we use the same path, it might conflict. 
-                         // Better use a different path for DataStore or handle migration.
+                    val oldFile = File(OLD_CONFIG_FILE_PATH)
+                    if (oldFile.exists()) {
                          val oldConfig = tryLoadOld(oldFile)
                          if (oldConfig != null) {
-                             updateConfig(gson.toJson(oldConfig))
-                             oldConfig
+                             val oldJson = gson.toJson(oldConfig)
+                             dataStore.edit { prefs ->
+                                 prefs[KEY_CONFIG_JSON] = oldJson
+                             }
+                             // Optionally delete old file? 
+                             // oldFile.delete()
+                             oldConfig.validateAndFix()
                          } else Config().validateAndFix()
                     } else Config().validateAndFix()
                 }

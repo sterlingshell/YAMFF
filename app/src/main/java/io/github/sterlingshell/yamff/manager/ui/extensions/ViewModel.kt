@@ -7,12 +7,32 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import io.github.sterlingshell.yamff.common.ext.gson
 import io.github.sterlingshell.yamff.manager.service.IpcProxy
+import io.github.sterlingshell.yamff.xposed.IExtensionsChangeListener
 import io.github.sterlingshell.yamff.xposed.sys.ExtensionDiscovery
 import io.github.sterlingshell.yamff.xposed.sys.ExtensionMetadata
 
 class ViewModel(application: Application) : AndroidViewModel(application) {
     var extensions by mutableStateOf(loadExtensions())
         private set
+
+    private val extensionsChangeListener = object : IExtensionsChangeListener.Stub() {
+        override fun onExtensionsChanged(extensionsJson: String) {
+            val authorizedPackages: Set<String> = gson.fromJson(
+                extensionsJson,
+                object : com.google.gson.reflect.TypeToken<Set<String>>() {}.type
+            )
+            extensions = ExtensionDiscovery.discover(getApplication(), authorizedPackages)
+        }
+    }
+
+    init {
+        IpcProxy.registerExtensionsChangeListener(extensionsChangeListener)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        IpcProxy.unregisterExtensionsChangeListener(extensionsChangeListener)
+    }
 
     private fun loadExtensions(): List<ExtensionMetadata> {
         val authorizedJson = IpcProxy.getExtensionsJson()

@@ -14,6 +14,7 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import dev.rikka.tools.refine.Refine
 import io.github.sterlingshell.yamff.BuildConfig
 import io.github.sterlingshell.yamff.common.Constants
+import io.github.sterlingshell.yamff.common.ext.gson
 import io.github.sterlingshell.yamff.xposed.sys.SystemServices
 import io.github.sterlingshell.yamff.xposed.util.ext.log
 import kotlinx.coroutines.CoroutineScope
@@ -45,6 +46,28 @@ class ExtensionRegistry {
 
     init {
         instance = this
+        migrateOldConfig()
+    }
+
+    private fun migrateOldConfig() {
+        runBlocking {
+            val oldFile = File(Constants.OLD_EXTENSIONS_CONFIG_FILE)
+            if (oldFile.exists()) {
+                try {
+                    val authorized: Set<String> = oldFile.bufferedReader().use {
+                        gson.fromJson(it, object : com.google.gson.reflect.TypeToken<Set<String>>() {}.type)
+                    }
+                    dataStore.edit { prefs ->
+                        val current = prefs[KEY_AUTHORIZED_PACKAGES] ?: emptySet()
+                        prefs[KEY_AUTHORIZED_PACKAGES] = current + authorized
+                    }
+                    // oldFile.delete()
+                    log(TAG, "Migrated old extensions config")
+                } catch (t: Throwable) {
+                    log(TAG, "Failed to migrate old extensions config", t)
+                }
+            }
+        }
     }
 
     fun isAuthorized(uid: Int, pms: Any? = null): Boolean {

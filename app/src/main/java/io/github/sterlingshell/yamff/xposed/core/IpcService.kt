@@ -15,6 +15,9 @@ import io.github.sterlingshell.yamff.common.ext.runMain
 import io.github.sterlingshell.yamff.common.model.LaunchRequest
 import io.github.sterlingshell.yamff.xposed.IFreeform
 import io.github.sterlingshell.yamff.xposed.IOpenCountListener
+import io.github.sterlingshell.yamff.xposed.IConfigChangeListener
+import io.github.sterlingshell.yamff.xposed.IExtensionsChangeListener
+import android.os.RemoteCallbackList
 import io.github.sterlingshell.yamff.xposed.compat.SystemCompat
 import io.github.sterlingshell.yamff.xposed.hooks.HookLauncher
 import io.github.sterlingshell.yamff.xposed.sys.SystemServices
@@ -37,6 +40,9 @@ object IpcService : IFreeform.Stub(), KoinComponent {
     
     private val configManager: ConfigManager by inject()
     private val extensionRegistry: ExtensionRegistry by inject()
+    
+    private val configListeners = RemoteCallbackList<IConfigChangeListener>()
+    private val extensionsListeners = RemoteCallbackList<IExtensionsChangeListener>()
 
     const val ACTION_GET_LAUNCHER_CONFIG = "io.github.sterlingshell.yamff.ACTION_GET_LAUNCHER_CONFIG"
     const val ACTION_OPEN_APP = "io.github.sterlingshell.yamff.action.OPEN_APP"
@@ -152,7 +158,18 @@ object IpcService : IFreeform.Stub(), KoinComponent {
     override fun updateConfig(newConfig: String) {
         runMain {
             configManager.updateConfig(newConfig)
+            notifyConfigChanged(newConfig)
         }
+    }
+
+    private fun notifyConfigChanged(configJson: String) {
+        val n = configListeners.beginBroadcast()
+        for (i in 0 until n) {
+            runCatching {
+                configListeners.getBroadcastItem(i).onConfigChanged(configJson)
+            }
+        }
+        configListeners.finishBroadcast()
     }
 
     override fun registerOpenCountListener(iOpenCountListener: IOpenCountListener) {
@@ -161,6 +178,22 @@ object IpcService : IFreeform.Stub(), KoinComponent {
 
     override fun unregisterOpenCountListener(iOpenCountListener: IOpenCountListener?) {
         FreeformManager.unregisterOpenCountListener(iOpenCountListener)
+    }
+
+    override fun registerConfigChangeListener(listener: IConfigChangeListener) {
+        configListeners.register(listener)
+    }
+
+    override fun unregisterConfigChangeListener(listener: IConfigChangeListener) {
+        configListeners.unregister(listener)
+    }
+
+    override fun registerExtensionsChangeListener(listener: IExtensionsChangeListener) {
+        extensionsListeners.register(listener)
+    }
+
+    override fun unregisterExtensionsChangeListener(listener: IExtensionsChangeListener) {
+        extensionsListeners.unregister(listener)
     }
 
     override fun openAppList() {
@@ -197,7 +230,18 @@ object IpcService : IFreeform.Stub(), KoinComponent {
             val current = extensionRegistry.getAllAuthorizedPackages()
             (current - authorized).forEach { extensionRegistry.setAuthorized(it, false) }
             (authorized - current).forEach { extensionRegistry.setAuthorized(it, true) }
+            notifyExtensionsChanged(newConfig)
         }
+    }
+
+    private fun notifyExtensionsChanged(extensionsJson: String) {
+        val n = extensionsListeners.beginBroadcast()
+        for (i in 0 until n) {
+            runCatching {
+                extensionsListeners.getBroadcastItem(i).onExtensionsChanged(extensionsJson)
+            }
+        }
+        extensionsListeners.finishBroadcast()
     }
 
     @Suppress("DEPRECATION")

@@ -6,6 +6,7 @@ import io.github.sterlingshell.yamff.BuildConfig
 import io.github.sterlingshell.yamff.common.ext.gson
 import io.github.sterlingshell.yamff.common.model.Config
 import io.github.sterlingshell.yamff.manager.service.IpcProxy
+import io.github.sterlingshell.yamff.xposed.IConfigChangeListener
 import io.github.sterlingshell.yamff.xposed.IOpenCountListener
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,6 +24,12 @@ class ViewModel : AndroidViewModel() {
     private val _config = MutableStateFlow(gson.fromJson(IpcProxy.configJson, Config::class.java))
     val config: StateFlow<Config> = _config
 
+    private val configChangeListener = object : IConfigChangeListener.Stub() {
+        override fun onConfigChanged(configJson: String) {
+            _config.value = gson.fromJson(configJson, Config::class.java)
+        }
+    }
+
     fun updateConfig(update: (Config) -> Unit) {
         val newConfig = _config.value.copy()
         update(newConfig)
@@ -39,12 +46,14 @@ class ViewModel : AndroidViewModel() {
     init {
         viewModelScope.launch {
             IpcProxy.registerOpenCountListener(openCountListener)
+            IpcProxy.registerConfigChangeListener(configChangeListener)
         }
     }
 
     override fun onCleared() {
         super.onCleared()
         IpcProxy.unregisterOpenCountListener(openCountListener)
+        IpcProxy.unregisterConfigChangeListener(configChangeListener)
     }
 
     fun createWindow() = IpcProxy.createWindow()
