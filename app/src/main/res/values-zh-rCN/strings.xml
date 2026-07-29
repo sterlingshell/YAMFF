@@ -45,6 +45,8 @@
     <string name="pref_dpi_mode_auto">自适应 (响应式 DPI)</string>
     <string name="pref_auto_dpi_target_width">自适应目标宽度 (dp)</string>
     <string name="pref_auto_dpi_target_width_desc">计算密度的基准逻辑宽度</string>
+    <string name="pref_auto_dpi_offset">自适应密度偏移</string>
+    <string name="pref_auto_dpi_offset_desc">微调自动计算的屏幕密度</string>
     <string name="pref_default_window_size">默认窗口大小 (dp)</string>
     <string name="pref_flags">标志位 (Flags)</string>
     <string name="pref_colored_controller">彩色控制条</string>

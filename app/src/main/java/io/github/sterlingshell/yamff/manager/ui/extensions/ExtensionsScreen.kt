@@ -27,12 +27,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.sterlingshell.yamff.R
+import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Extensions(viewModel: ViewModel = viewModel()) {
+fun ExtensionsScreen(viewModel: ExtensionsViewModel = koinViewModel()) {
     val context = LocalContext.current
 
     Scaffold(

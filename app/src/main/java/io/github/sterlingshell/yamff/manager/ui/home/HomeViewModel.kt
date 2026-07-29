@@ -3,16 +3,17 @@ package io.github.sterlingshell.yamff.manager.ui.home
 import androidx.lifecycle.ViewModel as AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.sterlingshell.yamff.BuildConfig
-import io.github.sterlingshell.yamff.common.ext.gson
 import io.github.sterlingshell.yamff.common.model.Config
+import io.github.sterlingshell.yamff.data.bridge.ConfigBridge
 import io.github.sterlingshell.yamff.manager.service.IpcProxy
-import io.github.sterlingshell.yamff.xposed.IConfigChangeListener
 import io.github.sterlingshell.yamff.xposed.IOpenCountListener
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class ViewModel : AndroidViewModel() {
+class HomeViewModel(
+    private val configBridge: ConfigBridge
+) : AndroidViewModel() {
     private val _openCount = MutableStateFlow(0)
     val openCount: StateFlow<Int> = _openCount
 
@@ -21,20 +22,12 @@ class ViewModel : AndroidViewModel() {
     val versionName = IpcProxy.versionName ?: ""
     val versionCode = IpcProxy.versionCode
 
-    private val _config = MutableStateFlow(gson.fromJson(IpcProxy.configJson, Config::class.java))
-    val config: StateFlow<Config> = _config
-
-    private val configChangeListener = object : IConfigChangeListener.Stub() {
-        override fun onConfigChanged(configJson: String) {
-            _config.value = gson.fromJson(configJson, Config::class.java)
-        }
-    }
+    val config: StateFlow<Config> = configBridge.config
 
     fun updateConfig(update: (Config) -> Unit) {
-        val newConfig = _config.value.copy()
+        val newConfig = config.value.copy()
         update(newConfig)
-        _config.value = newConfig
-        IpcProxy.updateConfig(gson.toJson(newConfig))
+        configBridge.updateConfig(newConfig)
     }
 
     private val openCountListener = object : IOpenCountListener.Stub() {
@@ -46,14 +39,12 @@ class ViewModel : AndroidViewModel() {
     init {
         viewModelScope.launch {
             IpcProxy.registerOpenCountListener(openCountListener)
-            IpcProxy.registerConfigChangeListener(configChangeListener)
         }
     }
 
     override fun onCleared() {
         super.onCleared()
         IpcProxy.unregisterOpenCountListener(openCountListener)
-        IpcProxy.unregisterConfigChangeListener(configChangeListener)
     }
 
     fun createWindow() = IpcProxy.createWindow()

@@ -4,6 +4,7 @@ data class Config(
     var densityDpi: Int = 200,
     var dpiMode: DpiMode = DpiMode.FIXED,
     var autoDpiTargetWidth: Int = 360,
+    var autoDpiOffset: Int = 0,
     var flags: Int = DEFAULT_FLAGS,
     var coloredController: Boolean = false,
     /*
@@ -37,6 +38,8 @@ data class Config(
         if (densityDpi > 1000) densityDpi = 1000
         if (autoDpiTargetWidth < 120) autoDpiTargetWidth = 120
         if (autoDpiTargetWidth > 1000) autoDpiTargetWidth = 1000
+        if (autoDpiOffset < -80) autoDpiOffset = -80
+        if (autoDpiOffset > 80) autoDpiOffset = 80
         if (defaultWindowWidth < 100) defaultWindowWidth = 100
         if (defaultWindowHeight < 100) defaultWindowHeight = 100
         

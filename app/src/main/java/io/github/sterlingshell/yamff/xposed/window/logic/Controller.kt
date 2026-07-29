@@ -63,6 +63,8 @@ class Controller(
         const val BUBBLE_WIDTH_MINI_DP = 48
         
         private const val BASE_DPI = 160
+        private const val MIN_DPI = 120
+        private const val DPI_CHANGE_THRESHOLD = 16
     }
 
     var state = State()
@@ -146,20 +148,32 @@ class Controller(
         if (isDestroyed) return
         runCatching {
             if (width > 0 && height > 0) {
-                densityDpi = calculateDensity(width)
-                virtualDisplay?.resize(width, height, densityDpi)
+                val newDpi = calculateDensity(width)
+                if (abs(newDpi - densityDpi) >= DPI_CHANGE_THRESHOLD) {
+                    densityDpi = newDpi
+                    virtualDisplay?.resize(width, height, densityDpi)
+                } else {
+                    virtualDisplay?.resize(width, height, densityDpi)
+                }
             }
         }
     }
 
     private fun calculateDensity(width: Int): Int {
         val config = ConfigManager.instance.config
-        return if (config.dpiMode == io.github.sterlingshell.yamff.common.model.DpiMode.AUTO) {
-            val calculated = (width.toFloat() / config.autoDpiTargetWidth * BASE_DPI).toInt()
-            calculated.coerceIn(72, 1000)
-        } else {
-            config.densityDpi
-        }
+        if (config.dpiMode != io.github.sterlingshell.yamff.common.model.DpiMode.AUTO) return config.densityDpi
+
+        val deviceDpi = context.resources.displayMetrics.densityDpi
+        val targetWidth = config.autoDpiTargetWidth
+        val userOffset = config.autoDpiOffset
+
+        // Linear formula to maintain targetWidth dp
+        val linearDpi = (width.toFloat() / targetWidth * BASE_DPI).toInt()
+
+        // Cap by device native DPI to ensure natural experience in large windows
+        val cappedDpi = linearDpi.coerceAtMost(deviceDpi)
+
+        return (cappedDpi + userOffset).coerceIn(MIN_DPI, 1000)
     }
 
     fun dispatch(action: Action) {

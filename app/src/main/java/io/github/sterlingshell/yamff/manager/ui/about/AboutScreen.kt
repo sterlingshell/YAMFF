@@ -27,15 +27,15 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.net.toUri
 import io.github.sterlingshell.yamff.BuildConfig
 import io.github.sterlingshell.yamff.R
-import io.github.sterlingshell.yamff.manager.ui.components.PreferenceCategory
-import io.github.sterlingshell.yamff.manager.ui.components.PreferenceItem
+import io.github.sterlingshell.yamff.manager.ui.components.items.PreferenceCategoryHeader
+import io.github.sterlingshell.yamff.manager.ui.components.items.PreferenceItem
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun About() {
+fun AboutScreen() {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
@@ -89,7 +89,7 @@ fun About() {
                 }
             }
 
-            PreferenceCategory(title = stringResource(R.string.about_links))
+            PreferenceCategoryHeader(title = stringResource(R.string.about_links))
             PreferenceItem(
                 title = stringResource(R.string.about_github),
                 onClick = {

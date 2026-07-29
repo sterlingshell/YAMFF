@@ -21,12 +21,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import io.github.sterlingshell.yamff.R
-import io.github.sterlingshell.yamff.manager.ui.about.About
-import io.github.sterlingshell.yamff.manager.ui.components.LocalHapticEnabled
-import io.github.sterlingshell.yamff.manager.ui.extensions.Extensions
-import io.github.sterlingshell.yamff.manager.ui.home.Home
-import io.github.sterlingshell.yamff.manager.ui.settings.Settings
-import io.github.sterlingshell.yamff.manager.ui.settings.ViewModel
+import io.github.sterlingshell.yamff.manager.ui.about.AboutScreen
+import io.github.sterlingshell.yamff.manager.ui.common.LocalHapticEnabled
+import io.github.sterlingshell.yamff.manager.ui.common.LocalSettingsViewModel
+import io.github.sterlingshell.yamff.manager.ui.extensions.ExtensionsScreen
+import io.github.sterlingshell.yamff.manager.ui.home.HomeScreen
+import io.github.sterlingshell.yamff.manager.ui.features.settings.SettingsScreen
+import io.github.sterlingshell.yamff.manager.ui.features.settings.SettingsViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 enum class Destination(
     val route: String,
@@ -47,13 +49,13 @@ enum class Destination(
 }
 
 @Composable
-fun AppRoot(settingsViewModel: ViewModel = viewModel()) {
+fun AppRoot(settingsViewModel: SettingsViewModel = koinViewModel()) {
     val navController = rememberNavController()
     var currentDestination by remember { mutableStateOf(Destination.Home) }
 
     CompositionLocalProvider(
         LocalHapticEnabled provides settingsViewModel.config.hapticFeedback,
-        io.github.sterlingshell.yamff.manager.ui.components.LocalSettingsViewModel provides settingsViewModel
+        LocalSettingsViewModel provides settingsViewModel
     ) {
         NavigationSuiteScaffold(
             navigationSuiteItems = {
@@ -85,10 +87,10 @@ fun AppRoot(settingsViewModel: ViewModel = viewModel()) {
                 navController = navController,
                 startDestination = Destination.Home.route
             ) {
-                composable(Destination.Home.route) { Home() }
-                composable(Destination.Extensions.route) { Extensions() }
-                composable(Destination.Settings.route) { Settings() }
-                composable(Destination.About.route) { About() }
+                composable(Destination.Home.route) { HomeScreen() }
+                composable(Destination.Extensions.route) { ExtensionsScreen() }
+                composable(Destination.Settings.route) { SettingsScreen() }
+                composable(Destination.About.route) { AboutScreen() }
             }
         }
     }

@@ -168,6 +168,14 @@ class Controller {
 
 类名和公共 API 里不许自创缩写。
 
+#### 2) 管理器（Manager）特有后缀
+
+在管理器 UI 层，使用明确的架构角色后缀：
+
+* **`Screen`**: 顶级 Composable 页面（如 `HomeScreen`, `SettingsScreen`）。
+* **`ViewModel`**: 标准的架构组件 ViewModel（如 `HomeViewModel`, `SettingsViewModel`）。
+* **`Bridge`**: 负责跨进程（IPC）数据同步或系统级状态管理的类（如 `ConfigBridge`）。
+
 ---
 
 ## 6. 什么时候该抽接口

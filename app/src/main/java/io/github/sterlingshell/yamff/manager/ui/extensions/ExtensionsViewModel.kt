@@ -11,7 +11,7 @@ import io.github.sterlingshell.yamff.xposed.IExtensionsChangeListener
 import io.github.sterlingshell.yamff.xposed.sys.ExtensionDiscovery
 import io.github.sterlingshell.yamff.xposed.sys.ExtensionMetadata
 
-class ViewModel(application: Application) : AndroidViewModel(application) {
+class ExtensionsViewModel(application: Application) : AndroidViewModel(application) {
     var extensions by mutableStateOf(loadExtensions())
         private set
 

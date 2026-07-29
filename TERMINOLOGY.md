@@ -14,8 +14,12 @@ To maintain consistency, readability, and a domain-specific vocabulary across th
 * **`Freeform`**: Represents **system-level modes, behaviors, IPC protocols, and global services** (`FreeformManager`, `LaunchRequest`).
 
 
-3. **Avoid Name Collision:**
+3. **Avoid Name Collision & Role Ambiguity:**
    Utility classes and extensions must be qualified with explicit context or module names. Generic, catch-all names like `Utils.kt` are strictly prohibited.
+   In the **Manager UI** layer, use explicit architectural suffixes:
+* **`Screen`**: For top-level Composable screens (`HomeScreen`, `SettingsScreen`).
+* **`ViewModel`**: For standard AAC ViewModels (`HomeViewModel`, `SettingsViewModel`).
+* **`Bridge`**: For data mediators wrapping IPC or system-level state (`ConfigBridge`).
 
 ---
 
