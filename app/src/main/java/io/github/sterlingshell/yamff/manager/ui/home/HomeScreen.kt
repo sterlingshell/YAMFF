@@ -24,9 +24,12 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import io.github.sterlingshell.yamff.BuildConfig
 import io.github.sterlingshell.yamff.R
+import io.github.sterlingshell.yamff.common.model.Config
 import io.github.sterlingshell.yamff.manager.ui.common.LocalSettingsViewModel
+import io.github.sterlingshell.yamff.manager.ui.common.LocalWindowSizeClass
 import io.github.sterlingshell.yamff.manager.ui.components.cards.PreferenceCard
 import io.github.sterlingshell.yamff.manager.ui.components.items.SwitchPreferenceItem
 import io.github.sterlingshell.yamff.manager.ui.features.settings.SettingsViewModel
@@ -50,7 +53,11 @@ fun HomeScreen(
     viewModel: HomeViewModel = koinViewModel()
 ) {
     val settingsViewModel = LocalSettingsViewModel.current
+    val windowSizeClass = LocalWindowSizeClass.current
     val openCount by viewModel.openCount.collectAsState()
+    val settingsConfig by settingsViewModel.config.collectAsState()
+    
+    val isWide = windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact
 
     Scaffold(
         topBar = {
@@ -59,7 +66,7 @@ fun HomeScreen(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = {
-                    if (settingsViewModel.config.useAppList) {
+                    if (settingsConfig.useAppList) {
                         viewModel.openAppList()
                     } else {
                         viewModel.currentToWindow()
@@ -67,50 +74,76 @@ fun HomeScreen(
                 },
                 icon = {
                     Icon(
-                        imageVector = if (settingsViewModel.config.useAppList) Icons.Default.Apps else Icons.AutoMirrored.Filled.ArrowForward,
+                        imageVector = if (settingsConfig.useAppList) Icons.Default.Apps else Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = null
                     )
                 },
                 text = {
                     Text(
                         text = stringResource(
-                            if (settingsViewModel.config.useAppList) R.string.open_app_list else R.string.enter_window
+                            if (settingsConfig.useAppList) R.string.open_app_list else R.string.enter_window
                         )
                     )
                 }
             )
         }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            StatusCard(viewModel)
-
-            OpenCountCard(viewModel, openCount)
-
-            Text(
-                text = stringResource(R.string.home_quick_settings),
-                modifier = Modifier.padding(horizontal = 24.dp),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
-            PreferenceCard {
-                SwitchPreferenceItem(
-                    title = stringResource(R.string.pref_colored_controller),
-                    checked = settingsViewModel.config.coloredController,
-                    onCheckedChange = { settingsViewModel.updateColoredController(it) }
-                )
-                SwitchPreferenceItem(
-                    title = stringResource(R.string.pref_back_home),
-                    checked = settingsViewModel.config.recentsBackHome,
-                    onCheckedChange = { settingsViewModel.updateRecentsBackHome(it) }
-                )
+        if (isWide) {
+            Row(
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Box(modifier = Modifier.weight(1f)) {
+                    StatusCard(viewModel)
+                }
+                Column(
+                    modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    OpenCountCard(viewModel, openCount)
+                    QuickSettings(settingsViewModel, settingsConfig)
+                }
             }
+        } else {
+            Column(
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                StatusCard(viewModel)
+                OpenCountCard(viewModel, openCount)
+                QuickSettings(settingsViewModel, settingsConfig)
+            }
+        }
+    }
+}
+
+@Composable
+private fun QuickSettings(settingsViewModel: SettingsViewModel, config: Config) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = stringResource(R.string.home_quick_settings),
+            modifier = Modifier.padding(horizontal = 24.dp),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary
+        )
+        PreferenceCard {
+            SwitchPreferenceItem(
+                title = stringResource(R.string.pref_colored_controller),
+                checked = config.coloredController,
+                onCheckedChange = { settingsViewModel.updateColoredController(it) }
+            )
+            SwitchPreferenceItem(
+                title = stringResource(R.string.pref_back_home),
+                checked = config.recentsBackHome,
+                onCheckedChange = { settingsViewModel.updateRecentsBackHome(it) }
+            )
         }
     }
 }

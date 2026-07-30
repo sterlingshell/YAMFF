@@ -28,7 +28,7 @@ private sealed class AdvancedDialogState {
 
 @Composable
 fun AdvancedScreen(viewModel: SettingsViewModel) {
-    val config = viewModel.config
+    val config by viewModel.config.collectAsState()
     var dialogState by remember { mutableStateOf<AdvancedDialogState?>(null) }
 
     Column(
@@ -38,7 +38,7 @@ fun AdvancedScreen(viewModel: SettingsViewModel) {
             .padding(vertical = 16.dp)
     ) {
         Text(
-            text = "Advanced Settings",
+            text = stringResource(R.string.pref_advanced_title),
             modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.primary

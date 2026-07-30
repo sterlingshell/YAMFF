@@ -1,6 +1,7 @@
 package io.github.sterlingshell.yamff.di
 
 import io.github.sterlingshell.yamff.data.bridge.ConfigBridge
+import io.github.sterlingshell.yamff.data.bridge.ExtensionsBridge
 import io.github.sterlingshell.yamff.manager.ui.home.HomeViewModel
 import io.github.sterlingshell.yamff.manager.ui.features.settings.SettingsViewModel
 import io.github.sterlingshell.yamff.manager.ui.extensions.ExtensionsViewModel
@@ -18,6 +19,7 @@ val coreModule = module {
 
 val appModule = module {
     single { ConfigBridge() }
+    single { ExtensionsBridge(get()) }
     
     viewModel { HomeViewModel(get()) }
     viewModel { SettingsViewModel(get()) }

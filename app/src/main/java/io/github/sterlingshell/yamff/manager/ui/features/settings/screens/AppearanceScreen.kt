@@ -34,7 +34,7 @@ private sealed class AppearanceDialogState {
 
 @Composable
 fun AppearanceScreen(viewModel: SettingsViewModel) {
-    val config = viewModel.config
+    val config by viewModel.config.collectAsState()
     var dialogState by remember { mutableStateOf<AppearanceDialogState?>(null) }
 
     Column(

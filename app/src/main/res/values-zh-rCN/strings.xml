@@ -36,6 +36,10 @@
     <string name="collapsed_app_icon">应用图标</string>
 
     <string name="pref_display_title">显示设置</string>
+    <string name="pref_appearance_summary">窗口样式、DPI 和大小</string>
+    <string name="pref_behavior_summary">手势、输入法和进窗模式</string>
+    <string name="pref_advanced_title">高级设置</string>
+    <string name="pref_advanced_summary">Xposed 钩子、Surface 类型及底层设置</string>
     <string name="pref_window_style">窗口样式</string>
     <string name="pref_window_style_classic">经典</string>
     <string name="pref_window_style_gesture">手势</string>
@@ -99,6 +103,7 @@
     <string name="pref_search_hint">搜索设置项…</string>
     <string name="pref_preview">预览</string>
     <string name="pref_preview_desc">大致的窗口长宽比例</string>
+    <string name="pref_select_category_hint">选择一个分类以查看设置</string>
 
     <string name="dialog_width">宽度 (dp)</string>
     <string name="dialog_height">高度 (dp)</string>

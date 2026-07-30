@@ -24,7 +24,7 @@ private sealed class BehaviorDialogState {
 
 @Composable
 fun WindowBehaviorScreen(viewModel: SettingsViewModel) {
-    val config = viewModel.config
+    val config by viewModel.config.collectAsState()
     var dialogState by remember { mutableStateOf<BehaviorDialogState?>(null) }
 
     Column(
@@ -34,7 +34,7 @@ fun WindowBehaviorScreen(viewModel: SettingsViewModel) {
             .padding(vertical = 16.dp)
     ) {
         Text(
-            text = "Window Behavior",
+            text = stringResource(R.string.pref_behavior_title),
             modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.primary

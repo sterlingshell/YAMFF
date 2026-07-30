@@ -1,47 +1,28 @@
 package io.github.sterlingshell.yamff.manager.ui.features.settings
 
-import android.app.Application
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.lifecycle.AndroidViewModel
-import io.github.sterlingshell.yamff.common.ext.gson
+import androidx.lifecycle.ViewModel
 import io.github.sterlingshell.yamff.common.model.Config
 import io.github.sterlingshell.yamff.common.model.DpiMode
 import io.github.sterlingshell.yamff.common.model.SurfaceType
 import io.github.sterlingshell.yamff.common.model.WindowStyle
-import io.github.sterlingshell.yamff.manager.service.IpcProxy
-import io.github.sterlingshell.yamff.xposed.IConfigChangeListener
+import io.github.sterlingshell.yamff.data.bridge.ConfigBridge
+import kotlinx.coroutines.flow.StateFlow
 
-class SettingsViewModel(application: Application) : AndroidViewModel(application) {
-    var config: Config by mutableStateOf(gson.fromJson(IpcProxy.configJson, Config::class.java))
-        private set
+class SettingsViewModel(
+    private val configBridge: ConfigBridge
+) : ViewModel() {
+    
+    val config: StateFlow<Config> = configBridge.config
 
-    private val configChangeListener = object : IConfigChangeListener.Stub() {
-        override fun onConfigChanged(configJson: String) {
-            config = gson.fromJson(configJson, Config::class.java)
-        }
-    }
-
-    init {
-        IpcProxy.registerConfigChangeListener(configChangeListener)
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        IpcProxy.unregisterConfigChangeListener(configChangeListener)
-    }
-
-    val useAppList: Boolean get() = config.useAppList
+    val useAppList: Boolean get() = config.value.useAppList
 
     fun updateConfig(update: (Config) -> Unit) {
-        val newConfig = config.copy()
+        val newConfig = config.value.copy()
         // Deep copy nested objects manually because Config.copy() is shallow
-        newConfig.hookLauncher = config.hookLauncher.copy()
+        newConfig.hookLauncher = config.value.hookLauncher.copy()
         
         update(newConfig)
-        config = newConfig
-        IpcProxy.updateConfig(gson.toJson(config))
+        configBridge.updateConfig(newConfig)
     }
 
     fun updateUseAppList(value: Boolean) = updateConfig { it.useAppList = value }
@@ -64,7 +45,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         it.defaultWindowHeight = height
     }
     fun updateHookLauncher(update: (Config.HookLauncher) -> Unit) = updateConfig {
-        // Deep copy already handled in updateConfig, but let's be safe
         update(it.hookLauncher)
     }
     fun updateShowForceShowIME(value: Boolean) = updateConfig { it.showForceShowIME = value }

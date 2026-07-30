@@ -110,17 +110,40 @@ object IpcService : IFreeform.Stub(), KoinComponent {
             }, 0)
         }
         
-        // Listen for package changes to refresh UID cache
+        // Listen for package changes to refresh UID cache and handle app updates
         val packageFilter = IntentFilter().apply {
             addAction(Intent.ACTION_PACKAGE_ADDED)
             addAction(Intent.ACTION_PACKAGE_REPLACED)
             addAction(Intent.ACTION_PACKAGE_REMOVED)
+            addAction(Intent.ACTION_PACKAGE_RESTARTED)
             addDataScheme("package")
         }
         systemContext.registerReceiver(object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
-                log(TAG, "Package change detected, refreshing UID cache")
-                extensionRegistry.refreshUidCache()
+                val pkgName = intent?.data?.schemeSpecificPart ?: return
+                
+                when (intent.action) {
+                    Intent.ACTION_PACKAGE_ADDED, 
+                    Intent.ACTION_PACKAGE_REPLACED, 
+                    Intent.ACTION_PACKAGE_REMOVED -> {
+                        log(TAG, "Package change detected for $pkgName, refreshing UID cache")
+                        extensionRegistry.refreshUidCache()
+                        
+                        // If an app is being updated or removed, close its window immediately
+                        // to prevent graphics buffer panic.
+                        FreeformManager.closeWindowByPackage(pkgName)
+                        
+                        // If the manager itself is being updated, close everything!
+                        if (pkgName == BuildConfig.APPLICATION_ID) {
+                            log(TAG, "Manager update detected, closing all windows for safety")
+                            FreeformManager.closeAllWindows()
+                        }
+                    }
+                    Intent.ACTION_PACKAGE_RESTARTED -> {
+                        // Handle force-stop
+                        FreeformManager.closeWindowByPackage(pkgName)
+                    }
+                }
             }
         }, packageFilter)
     }
@@ -144,7 +167,9 @@ object IpcService : IFreeform.Stub(), KoinComponent {
                 configManager.config.flags,
                 request?.startRect
             ) { displayId ->
-                FreeformManager.addWindow(displayId)
+                request?.componentName?.packageName?.let { 
+                    FreeformManager.associatePackageWithDisplay(it, displayId)
+                }
                 request?.taskId?.let { FreeformManager.associateTaskWithDisplay(it, displayId) }
                 request?.launch(displayId)
             }

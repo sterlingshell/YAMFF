@@ -5,18 +5,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DisplaySettings
-import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import io.github.sterlingshell.yamff.R
 import io.github.sterlingshell.yamff.manager.ui.components.cards.PreferenceCard
 import io.github.sterlingshell.yamff.manager.ui.components.items.PreferenceItem
@@ -26,7 +20,7 @@ import io.github.sterlingshell.yamff.manager.ui.features.settings.SettingsViewMo
 @Composable
 fun SettingsMainScreen(
     viewModel: SettingsViewModel,
-    navController: NavController
+    onNavigateToDetail: (SettingsRoute) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -43,18 +37,18 @@ fun SettingsMainScreen(
         PreferenceCard {
             PreferenceItem(
                 title = stringResource(R.string.pref_display_title),
-                summary = "Window style, DPI, and size",
-                onClick = { navController.navigate(SettingsRoute.Appearance.route) }
+                summary = stringResource(R.string.pref_appearance_summary),
+                onClick = { onNavigateToDetail(SettingsRoute.Appearance) }
             )
             PreferenceItem(
-                title = "Window Behavior",
-                summary = "Gestures, IME, and windowfy mode",
-                onClick = { navController.navigate(SettingsRoute.Behavior.route) }
+                title = stringResource(R.string.pref_behavior_title),
+                summary = stringResource(R.string.pref_behavior_summary),
+                onClick = { onNavigateToDetail(SettingsRoute.Behavior) }
             )
             PreferenceItem(
-                title = "Advanced Settings",
-                summary = "Xposed hooks, Surface type, and internals",
-                onClick = { navController.navigate(SettingsRoute.Advanced.route) }
+                title = stringResource(R.string.pref_advanced_title),
+                summary = stringResource(R.string.pref_advanced_summary),
+                onClick = { onNavigateToDetail(SettingsRoute.Advanced) }
             )
         }
     }

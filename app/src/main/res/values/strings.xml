@@ -37,6 +37,10 @@
     <string name="collapsed_app_icon">App Icon</string>
 
     <string name="pref_display_title">Display Settings</string>
+    <string name="pref_appearance_summary">Window style, DPI, and size</string>
+    <string name="pref_behavior_summary">Gestures, IME, and windowfy mode</string>
+    <string name="pref_advanced_title">Advanced Settings</string>
+    <string name="pref_advanced_summary">Xposed hooks, Surface type, and internals</string>
     <string name="pref_window_style">Window Style</string>
     <string name="pref_window_style_classic">Classic</string>
     <string name="pref_window_style_gesture">Gesture</string>
@@ -100,6 +104,7 @@
     <string name="pref_search_hint">Search settings…</string>
     <string name="pref_preview">Preview</string>
     <string name="pref_preview_desc">Approximate window aspect ratio</string>
+    <string name="pref_select_category_hint">Select a category to view settings</string>
 
     <string name="dialog_width">Width (dp)</string>
     <string name="dialog_height">Height (dp)</string>

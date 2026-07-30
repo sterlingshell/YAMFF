@@ -1,5 +1,7 @@
 package io.github.sterlingshell.yamff.manager.ui
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Home
@@ -8,22 +10,23 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import io.github.sterlingshell.yamff.R
 import io.github.sterlingshell.yamff.manager.ui.about.AboutScreen
 import io.github.sterlingshell.yamff.manager.ui.common.LocalHapticEnabled
 import io.github.sterlingshell.yamff.manager.ui.common.LocalSettingsViewModel
+import io.github.sterlingshell.yamff.manager.ui.common.LocalWindowSizeClass
 import io.github.sterlingshell.yamff.manager.ui.extensions.ExtensionsScreen
 import io.github.sterlingshell.yamff.manager.ui.home.HomeScreen
 import io.github.sterlingshell.yamff.manager.ui.features.settings.SettingsScreen
@@ -46,16 +49,28 @@ enum class Destination(
             Settings -> R.string.nav_settings
             About -> R.string.nav_about
         }
+
+    companion object {
+        fun fromRoute(route: String?): Destination {
+            return entries.find { it.route == route } ?: Home
+        }
+    }
 }
 
 @Composable
-fun AppRoot(settingsViewModel: SettingsViewModel = koinViewModel()) {
+fun AppRoot(
+    windowSizeClass: WindowSizeClass,
+    settingsViewModel: SettingsViewModel = koinViewModel()
+) {
     val navController = rememberNavController()
-    var currentDestination by remember { mutableStateOf(Destination.Home) }
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = Destination.fromRoute(navBackStackEntry?.destination?.route)
+    val config by settingsViewModel.config.collectAsState()
 
     CompositionLocalProvider(
-        LocalHapticEnabled provides settingsViewModel.config.hapticFeedback,
-        LocalSettingsViewModel provides settingsViewModel
+        LocalHapticEnabled provides config.hapticFeedback,
+        LocalSettingsViewModel provides settingsViewModel,
+        LocalWindowSizeClass provides windowSizeClass
     ) {
         NavigationSuiteScaffold(
             navigationSuiteItems = {
@@ -70,13 +85,14 @@ fun AppRoot(settingsViewModel: SettingsViewModel = koinViewModel()) {
                         label = { Text(stringResource(destination.labelRes)) },
                         selected = currentDestination == destination,
                         onClick = {
-                            currentDestination = destination
-                            navController.navigate(destination.route) {
-                                popUpTo(navController.graph.startDestinationId) {
-                                    saveState = true
+                            if (currentDestination != destination) {
+                                navController.navigate(destination.route) {
+                                    popUpTo(navController.graph.startDestinationId) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
                             }
                         }
                     )
@@ -85,7 +101,11 @@ fun AppRoot(settingsViewModel: SettingsViewModel = koinViewModel()) {
         ) {
             NavHost(
                 navController = navController,
-                startDestination = Destination.Home.route
+                startDestination = Destination.Home.route,
+                enterTransition = { EnterTransition.None },
+                exitTransition = { ExitTransition.None },
+                popEnterTransition = { EnterTransition.None },
+                popExitTransition = { ExitTransition.None }
             ) {
                 composable(Destination.Home.route) { HomeScreen() }
                 composable(Destination.Extensions.route) { ExtensionsScreen() }

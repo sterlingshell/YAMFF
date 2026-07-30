@@ -9,17 +9,26 @@ object FreeformManager {
     private val windowList = CopyOnWriteArrayList<Int>()
     private val taskToDisplayMap = ConcurrentHashMap<Int, Int>()
     
+    // Map of displayId to a cleanup function
+    private val windowCleanupMap = ConcurrentHashMap<Int, () -> Unit>()
+    
+    // Map of displayId to the primary package name running in it
+    private val displayToPackageMap = ConcurrentHashMap<Int, String>()
+    
     val openWindowCount: Int get() = windowList.size
         
     private val iOpenCountListenerSet = CopyOnWriteArraySet<IOpenCountListener>()
 
-    fun addWindow(displayId: Int) {
+    fun addWindow(displayId: Int, cleanup: () -> Unit) {
         windowList.add(0, displayId)
+        windowCleanupMap[displayId] = cleanup
         notifyListeners()
     }
 
     fun removeWindow(displayId: Int) {
         if (windowList.remove(displayId)) {
+            windowCleanupMap.remove(displayId)
+            displayToPackageMap.remove(displayId)
             val toRemove = taskToDisplayMap.filter { it.value == displayId }.keys
             toRemove.forEach { taskToDisplayMap.remove(it) }
             notifyListeners()
@@ -29,6 +38,10 @@ object FreeformManager {
     fun associateTaskWithDisplay(taskId: Int, displayId: Int) {
         taskToDisplayMap[taskId] = displayId
     }
+    
+    fun associatePackageWithDisplay(packageName: String, displayId: Int) {
+        displayToPackageMap[displayId] = packageName
+    }
 
     fun isTaskInWindow(taskId: Int): Boolean {
         return taskToDisplayMap.containsKey(taskId)
@@ -37,6 +50,20 @@ object FreeformManager {
     fun moveToTop(displayId: Int) {
         if (windowList.remove(displayId)) {
             windowList.add(0, displayId)
+        }
+    }
+
+    fun closeAllWindows() {
+        // Use a copy of keys to avoid concurrent modification if cleanup calls removeWindow
+        val ids = windowCleanupMap.keys().toList()
+        ids.forEach { id ->
+            windowCleanupMap[id]?.invoke()
+        }
+    }
+    
+    fun closeWindowByPackage(packageName: String) {
+        displayToPackageMap.filter { it.value == packageName }.keys.forEach { id ->
+            windowCleanupMap[id]?.invoke()
         }
     }
 

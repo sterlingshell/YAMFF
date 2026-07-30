@@ -9,6 +9,7 @@ import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.graphics.SurfaceTexture
 import android.os.Build
+import android.util.Log
 import android.view.Gravity
 import android.view.Surface
 import android.view.SurfaceHolder
@@ -35,6 +36,7 @@ class Window(
 ) : TextureView.SurfaceTextureListener, SurfaceHolder.Callback {
 
     companion object {
+        const val TAG = "Window"
         const val ACTION_RESET_ALL_WINDOW = "io.github.sterlingshell.yamff.ui.window.action.ACTION_RESET_ALL_WINDOW"
     }
 
@@ -49,11 +51,15 @@ class Window(
     private val controller: Controller = Controller(
         context, densityDpi, flags,
         onStateChanged = { state -> renderer.onStateChanged(state) },
-        onVirtualDisplayCreated = { displayId -> onVirtualDisplayCreated(displayId) },
+        onVirtualDisplayCreated = { displayId -> 
+            FreeformManager.addWindow(displayId) { forceClose() }
+            onVirtualDisplayCreated(displayId) 
+        },
         onDestroyCallback = { dismiss() }
     )
 
     private var currentSurface: Surface? = null
+    private var isClosing = false
 
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -124,12 +130,38 @@ class Window(
         renderer.startOpeningAnimation(startRect)
     }
 
-    private fun dismiss() {
-        runCatching { context.unregisterReceiver(broadcastReceiver) }
-        SystemServices.windowManager.removeView(renderer.getRootView())
-        currentSurface?.release()
-        currentSurface = null
+    /**
+     * Emergency close. Must be called on main thread or via controller.
+     * Order of operations is CRITICAL to prevent Kernel Panic:
+     * 1. Set surface to NULL (cut off data stream)
+     * 2. Remove View from WindowManager
+     * 3. Release VirtualDisplay (handled by controller.onDestroy)
+     */
+    fun forceClose() {
+        if (isClosing) return
+        isClosing = true
+        Log.i(TAG, "forceClose executing for display ${controller.displayId}")
+        
+        runCatching { 
+            controller.setSurface(null)
+            currentSurface?.release()
+            currentSurface = null
+        }
+        
+        runCatching { 
+            SystemServices.windowManager.removeView(renderer.getRootView()) 
+        }
+        
+        runCatching {
+            context.unregisterReceiver(broadcastReceiver)
+        }
+        
+        controller.onDestroy()
         FreeformManager.removeWindow(controller.displayId)
+    }
+
+    private fun dismiss() {
+        forceClose()
     }
 
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {

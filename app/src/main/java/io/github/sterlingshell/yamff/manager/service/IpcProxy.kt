@@ -43,10 +43,11 @@ object IpcProxy : IFreeform, DeathRecipient {
     private var service: IFreeform? = null
 
     fun linkService(binder: IBinder) {
+        val remote = IFreeform.Stub.asInterface(binder)
         service = Proxy.newProxyInstance(
             javaClass.classLoader,
             arrayOf(IFreeform::class.java),
-            ServiceProxy(IFreeform.Stub.asInterface(binder))
+            ServiceProxy(remote)
         ) as IFreeform
         binder.linkToDeath(this, 0)
     }
