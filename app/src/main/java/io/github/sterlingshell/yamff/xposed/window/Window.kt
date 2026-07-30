@@ -40,7 +40,7 @@ class Window(
         const val ACTION_RESET_ALL_WINDOW = "io.github.sterlingshell.yamff.ui.window.action.ACTION_RESET_ALL_WINDOW"
     }
 
-    private val renderer: Renderer = run {
+    val renderer: Renderer = run {
         val style = runCatching { ConfigManager.instance.config.windowStyle }.getOrNull() ?: WindowStyle.GESTURE
         if (style == WindowStyle.GESTURE) {
             MinimalRenderer(context)
@@ -52,7 +52,7 @@ class Window(
         context, densityDpi, flags,
         onStateChanged = { state -> renderer.onStateChanged(state) },
         onVirtualDisplayCreated = { displayId -> 
-            FreeformManager.addWindow(displayId) { forceClose() }
+            FreeformManager.addWindow(displayId, this@Window) { forceClose() }
             onVirtualDisplayCreated(displayId) 
         },
         onDestroyCallback = { dismiss() }

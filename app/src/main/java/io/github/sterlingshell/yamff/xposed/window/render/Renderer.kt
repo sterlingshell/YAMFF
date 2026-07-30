@@ -12,4 +12,5 @@ interface Renderer {
     fun getSurfaceView(): View
     fun startOpeningAnimation(startRect: Rect?)
     fun startClosingAnimation(onEnd: () -> Unit)
+    fun decorateSnapshot(appContent: android.graphics.Bitmap): android.graphics.Bitmap
 }

@@ -137,6 +137,40 @@ abstract class BaseRenderer<VB : ViewBinding>(val context: Context) : Renderer {
         lp.y = state.windowRect.top - root.paddingTop
     }
 
+    override fun decorateSnapshot(appContent: android.graphics.Bitmap): android.graphics.Bitmap {
+        val root = binding.root
+        if (root.width <= 0 || root.height <= 0 || !root.isAttachedToWindow) return appContent
+
+        val surfaceView = internalSurfaceView
+        val location = IntArray(2)
+        surfaceView.getLocationInWindow(location)
+        val rootLocation = IntArray(2)
+        root.getLocationInWindow(rootLocation)
+        
+        val relativeX = location[0] - rootLocation[0]
+        val relativeY = location[1] - rootLocation[1]
+        val surfaceW = surfaceView.width
+        val surfaceH = surfaceView.height
+
+        val result = createBitmap(root.width, root.height)
+        val canvas = android.graphics.Canvas(result)
+
+        // 1. Capture the "Frame" (Decorations)
+        val originalVisibility = surfaceView.visibility
+        surfaceView.visibility = View.INVISIBLE
+        root.draw(canvas)
+        surfaceView.visibility = originalVisibility
+
+        // 2. Synthesize the "Content" (App Screenshot)
+        if (surfaceW > 0 && surfaceH > 0) {
+            val paint = android.graphics.Paint(android.graphics.Paint.FILTER_BITMAP_FLAG)
+            val destRect = Rect(relativeX, relativeY, relativeX + surfaceW, relativeY + surfaceH)
+            canvas.drawBitmap(appContent, null, destRect, paint)
+        }
+
+        return result
+    }
+
     protected fun captureAndBlur() {
         val view = internalSurfaceView
         if (view.width <= 0 || view.height <= 0) return

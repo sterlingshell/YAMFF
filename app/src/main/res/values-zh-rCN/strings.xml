@@ -57,6 +57,14 @@
     <string name="pref_status_animations">状态卡片动画</string>
 
     <string name="pref_behavior_title">行为设置</string>
+    <string name="pref_recent_task_mode">最近任务处理模式</string>
+    <string name="pref_recent_task_mode_none">无特殊处理</string>
+    <string name="pref_recent_task_mode_hide">隐藏小窗应用卡片</string>
+    <string name="pref_recent_task_mode_optimize">卡片快照优化</string>
+    <string name="pref_snapshot_background">快照背景效果</string>
+    <string name="pref_snapshot_background_blur">模糊</string>
+    <string name="pref_snapshot_background_transparent">透明</string>
+    <string name="pref_snapshot_background_solid">纯色填充</string>
     <string name="pref_windowfy">进窗模式 (Windowfy)</string>
     <string name="pref_windowfy_0">0: 移动任务</string>
     <string name="pref_windowfy_1">1: 启动 Activity</string>

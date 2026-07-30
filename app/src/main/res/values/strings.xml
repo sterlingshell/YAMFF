@@ -58,6 +58,14 @@
     <string name="pref_status_animations">Status Card Animations</string>
 
     <string name="pref_behavior_title">Behavior Settings</string>
+    <string name="pref_recent_task_mode">Recent Task Mode</string>
+    <string name="pref_recent_task_mode_none">None</string>
+    <string name="pref_recent_task_mode_hide">Hide Windows From Recents</string>
+    <string name="pref_recent_task_mode_optimize">Optimize Snapshots</string>
+    <string name="pref_snapshot_background">Snapshot Background</string>
+    <string name="pref_snapshot_background_blur">Blur</string>
+    <string name="pref_snapshot_background_transparent">Transparent</string>
+    <string name="pref_snapshot_background_solid">Solid Color</string>
     <string name="pref_windowfy">Windowfy Mode</string>
     <string name="pref_windowfy_0">0: Move Task</string>
     <string name="pref_windowfy_1">1: Start Activity</string>

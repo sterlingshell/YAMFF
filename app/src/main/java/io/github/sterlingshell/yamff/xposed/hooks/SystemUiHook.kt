@@ -2,6 +2,7 @@ package io.github.sterlingshell.yamff.xposed.hooks
 
 import android.content.Intent
 import android.content.pm.IPackageManager
+import android.hardware.HardwareBuffer
 import com.github.kyuubiran.ezxhelper.init.EzXHelperInit
 import com.github.kyuubiran.ezxhelper.utils.findAllMethods
 import com.github.kyuubiran.ezxhelper.utils.findMethodOrNull
@@ -18,19 +19,26 @@ import io.github.sterlingshell.yamff.xposed.core.ExtensionRegistry
 import io.github.sterlingshell.yamff.xposed.core.IpcService
 import io.github.sterlingshell.yamff.xposed.core.FreeformManager
 import io.github.sterlingshell.yamff.xposed.core.IpcEntry
+import io.github.sterlingshell.yamff.xposed.sys.SystemServices
 import io.github.sterlingshell.yamff.xposed.util.ext.getDisplayIdSafe
 import io.github.sterlingshell.yamff.xposed.util.ext.isTaskInFreeform
 import io.github.sterlingshell.yamff.xposed.util.ext.log
+import io.github.sterlingshell.yamff.xposed.sys.graphics.processForRecentTask
+import io.github.sterlingshell.yamff.common.model.RecentTaskMode
+import io.github.sterlingshell.yamff.xposed.compat.SystemCompat
 import io.github.qauxv.util.Initiator
 import org.koin.core.context.startKoin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
+import org.koin.core.component.inject
 import kotlin.concurrent.thread
 
 class SystemUiHook : IXposedHookZygoteInit, IXposedHookLoadPackage, KoinComponent {
     companion object {
         private const val TAG = "SystemUiHook"
     }
+
+    private val configManager: ConfigManager by inject()
 
     override fun initZygote(startupParam: IXposedHookZygoteInit.StartupParam) {
         EzXHelperInit.initZygote(startupParam)
@@ -61,18 +69,18 @@ class SystemUiHook : IXposedHookZygoteInit, IXposedHookLoadPackage, KoinComponen
              runCatching {
                  if (param.args[0] == "package") {
                      serviceManagerHook?.unhook()
-                     val pms = param.args[1] as? IPackageManager ?: return@runCatching
+                     val pms = (param.args[1] as? IPackageManager) ?: return@runCatching
                      log(TAG, "Got pms: $pms")
                      thread {
                          runCatching {
                              IpcEntry.register(pms)
                              log(TAG, "IpcEntry started")
-                         }.onFailure {
-                             log(TAG, "IpcEntry failed to start", it)
+                         }.onFailure { e ->
+                             log(TAG, "IpcEntry failed to start", e)
                          }
                      }
                  }
-             }.onFailure { log(TAG, "Error in addService hook", it) }
+             }.onFailure { e -> log(TAG, "Error in addService hook", e) }
          }
 
          var activityManagerServiceSystemReadyHook: XC_MethodHook.Unhook? = null
@@ -84,7 +92,7 @@ class SystemUiHook : IXposedHookZygoteInit, IXposedHookLoadPackage, KoinComponen
                  IpcService.activityManagerService = it.thisObject
                  IpcService.systemReady()
                  log(TAG, "system ready")
-             }.onFailure { log(TAG, "Error in systemReady hook", it) }
+             }.onFailure { e -> log(TAG, "Error in systemReady hook", e) }
          }
 
         findMethodOrNull("com.android.server.am.ActivityManagerService") {
@@ -94,7 +102,7 @@ class SystemUiHook : IXposedHookZygoteInit, IXposedHookLoadPackage, KoinComponen
                 val intent = it.args[0] as? Intent ?: return@runCatching
                 if (intent.action == HookLauncher.ACTION_RECEIVE_LAUNCHER_CONFIG)
                     it.result = Unit // bypass check
-            }.onFailure { log(TAG, "Error in checkBroadcastFromSystem hook", it) }
+            }.onFailure { e -> log(TAG, "Error in checkBroadcastFromSystem hook", e) }
         }
 
         // BroadcastController is introduced in Android 15 (API 35)
@@ -106,9 +114,9 @@ class SystemUiHook : IXposedHookZygoteInit, IXposedHookLoadPackage, KoinComponen
                     val intent = it.args[0] as? Intent ?: return@runCatching
                     if (intent.action == HookLauncher.ACTION_RECEIVE_LAUNCHER_CONFIG)
                         it.result = Unit // bypass check
-                }.onFailure { log(TAG, "Error in checkBroadcastFromSystem (BroadcastController) hook", it) }
+                }.onFailure { e -> log(TAG, "Error in checkBroadcastFromSystem (BroadcastController) hook", e) }
             }
-        }.onFailure { log(TAG, "BroadcastController not found or hook failed", it) }
+        }.onFailure { e -> log(TAG, "BroadcastController not found or hook failed", e) }
         
         hookWindowLogic()
     }
@@ -117,29 +125,32 @@ class SystemUiHook : IXposedHookZygoteInit, IXposedHookLoadPackage, KoinComponen
         val classRecentTasks = com.github.kyuubiran.ezxhelper.utils.loadClassOrNull("com.android.server.wm.RecentTasks") ?: return
         val classActivityRecord = com.github.kyuubiran.ezxhelper.utils.loadClassOrNull("com.android.server.wm.ActivityRecord") ?: return
         val classTask = com.github.kyuubiran.ezxhelper.utils.loadClassOrNull("com.android.server.wm.Task") ?: return
+        val classATM = com.github.kyuubiran.ezxhelper.utils.loadClassOrNull("com.android.server.wm.ActivityTaskManagerService") ?: return
 
         // Hide from Recents (Low level)
-        classTask.findMethodOrNull { name == "isIncludedInRecents" }?.hookBefore { param ->
-            if (param.thisObject.isTaskInFreeform()) {
+        classTask.findAllMethods { name == "isIncludedInRecents" }.hookBefore { param ->
+            if ((configManager.config.recentTaskMode == RecentTaskMode.HIDDEN) && param.thisObject.isTaskInFreeform()) {
                 param.result = false
             }
         }
 
-        classTask.findMethodOrNull { name == "shouldBeVisible" }?.hookBefore { param ->
-            if (param.thisObject.isTaskInFreeform()) {
+        classTask.findAllMethods { name == "shouldBeVisible" }.hookBefore { param ->
+            if ((configManager.config.recentTaskMode == RecentTaskMode.HIDDEN) && param.thisObject.isTaskInFreeform()) {
                 param.result = false
             }
         }
 
-        classActivityRecord.findMethodOrNull { name == "isIncludedInRecents" }?.hookBefore { param ->
-            val displayId = param.thisObject.getDisplayIdSafe()
-            if (displayId != 0 && FreeformManager.getWindowList().contains(displayId)) {
-                param.result = false
+        classActivityRecord.findAllMethods { name == "isIncludedInRecents" }.hookBefore { param ->
+            if (configManager.config.recentTaskMode == RecentTaskMode.HIDDEN) {
+                val displayId = param.thisObject.getDisplayIdSafe()
+                if (displayId != 0 && FreeformManager.getWindowList().contains(displayId)) {
+                    param.result = false
+                }
             }
         }
         
-        classRecentTasks.findMethodOrNull { name == "isVisibleRecentTask" }?.hookBefore { param ->
-            if (param.args[0].isTaskInFreeform()) {
+        classRecentTasks.findAllMethods { name == "isVisibleRecentTask" }.hookBefore { param ->
+            if ((configManager.config.recentTaskMode == RecentTaskMode.HIDDEN) && param.args[0].isTaskInFreeform()) {
                 param.result = false
             }
         }
@@ -147,17 +158,79 @@ class SystemUiHook : IXposedHookZygoteInit, IXposedHookLoadPackage, KoinComponen
         // Hide from Recents (List level)
         classRecentTasks.findAllMethods { name == "getRecentTasks" }.hookAfter { param ->
             runCatching {
+                if (configManager.config.recentTaskMode != RecentTaskMode.HIDDEN) return@runCatching
+                
                 val result = param.result ?: return@hookAfter
-                val list = io.github.sterlingshell.yamff.xposed.compat.SystemCompat.getRecentTasksList(result) ?: return@hookAfter
+                val list = SystemCompat.getRecentTasksList(result) ?: return@hookAfter
                 val filteredList = list.filter { info ->
-                    val displayId = io.github.sterlingshell.yamff.xposed.compat.SystemCompat.getDisplayId(info)
+                    val displayId = SystemCompat.getDisplayId(info)
                     val inWindow = FreeformManager.isTaskInWindow(info.taskId) || FreeformManager.getWindowList().contains(displayId)
                     !inWindow
                 }
                 if (filteredList.size != list.size) {
-                    param.result = io.github.sterlingshell.yamff.xposed.compat.SystemCompat.createParceledListSlice(filteredList)
+                    param.result = SystemCompat.createParceledListSlice(filteredList)
                 }
-            }.onFailure { log(TAG, "Error in getRecentTasks hook", it) }
+            }.onFailure { e -> log(TAG, "Error in getRecentTasks hook", e) }
+        }
+
+        // Snapshot Optimization
+        val classSnapshotController = com.github.kyuubiran.ezxhelper.utils.loadClassOrNull("com.android.server.wm.TaskSnapshotController")
+        val snapshotAction: (XC_MethodHook.MethodHookParam) -> Unit = { param ->
+            runCatching {
+                if (configManager.config.recentTaskMode != RecentTaskMode.DECORATED) return@runCatching
+                
+                val snapshot = param.result ?: return@runCatching
+                val task = if (param.thisObject.javaClass.simpleName == "Task") param.thisObject else param.args[0]
+                val taskId = SystemCompat.getTaskId(task)
+                
+                val isFreeform = FreeformManager.isTaskInWindow(taskId) || FreeformManager.isTaskFormerFreeform(taskId)
+                
+                if (isFreeform) {
+                    val buffer = (de.robv.android.xposed.XposedHelpers.callMethod(snapshot, "getHardwareBuffer") as? HardwareBuffer) ?: return@runCatching
+                    
+                    val bitmap = android.graphics.Bitmap.wrapHardwareBuffer(buffer, null) ?: return@runCatching
+                    val softwareBitmap = bitmap.copy(android.graphics.Bitmap.Config.ARGB_8888, false) ?: return@runCatching
+                    
+                    val window = FreeformManager.getDisplayIdForTask(taskId)?.let { FreeformManager.getWindow(it) }
+                    
+                    val optimizedBitmap = window?.renderer?.decorateSnapshot(softwareBitmap)
+                        ?: softwareBitmap.processForRecentTask(
+                            softwareBitmap.width,
+                            softwareBitmap.height,
+                            configManager.config.snapshotBackground,
+                            addDecoration = false,
+                        )
+                    
+                    val newBuffer = optimizedBitmap.copy(android.graphics.Bitmap.Config.HARDWARE, false)?.hardwareBuffer ?: return@runCatching
+                    
+                    val field = snapshot.javaClass.getDeclaredField("mSnapshot")
+                    field.isAccessible = true
+                    field[snapshot] = newBuffer
+                }
+            }.onFailure { e -> log(TAG, "Error in snapshot hook", e) }
+        }
+
+        classTask.findMethodOrNull { name == "getSnapshot" }?.hookAfter { snapshotAction(it) }
+        classSnapshotController?.findMethodOrNull { name == "getSnapshot" }?.hookAfter { snapshotAction(it) }
+        classSnapshotController?.findMethodOrNull { name == "snapshotTask" }?.hookAfter { snapshotAction(it) }
+
+        // Intercept Recents Click
+        classATM.findMethodOrNull { name == "startActivityFromRecents" }?.hookBefore { param ->
+            runCatching {
+                if (configManager.config.recentTaskMode != RecentTaskMode.DECORATED) return@runCatching
+                
+                val taskId = param.args[0] as Int
+                val displayId = FreeformManager.getDisplayIdForTask(taskId)
+                
+                if (displayId != null) {
+                    val window = FreeformManager.getWindow(displayId)
+                    if (window != null) {
+                        FreeformManager.moveToTop(displayId)
+                        SystemCompat.setFocusedDisplay(SystemServices.iWindowManager, displayId)
+                        param.result = 0 // START_SUCCESS
+                    }
+                }
+            }.onFailure { e -> log(TAG, "Error in startActivityFromRecents hook", e) }
         }
 
         // Multi-Resume

@@ -173,6 +173,9 @@ object IpcService : IFreeform.Stub(), KoinComponent {
                 request?.taskId?.let { FreeformManager.associateTaskWithDisplay(it, displayId) }
                 request?.launch(displayId)
             }
+            
+            // Note: Window's init already calls FreeformManager.addWindow via a callback in our existing logic? 
+            // Wait, let's check Window.kt init again.
         }.onFailure { e ->
             log(TAG, "Failed to create window due to context error", e)
         }

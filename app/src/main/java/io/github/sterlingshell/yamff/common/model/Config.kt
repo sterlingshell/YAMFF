@@ -30,6 +30,8 @@ data class Config(
     var windowStyle: WindowStyle = WindowStyle.GESTURE,
     var useAppList: Boolean = true,
     var enableStatusAnimations: Boolean = true,
+    var recentTaskMode: RecentTaskMode = RecentTaskMode.HIDDEN,
+    var snapshotBackground: SnapshotBackground = SnapshotBackground.BLUR,
     var lastSeenActivatedBuildTime: Long = 0L,
     var version: Int = CURRENT_VERSION
 ) {
